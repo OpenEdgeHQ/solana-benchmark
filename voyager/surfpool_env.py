@@ -92,7 +92,7 @@ class SurfpoolEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 30}
 
     def __init__(self, rpc_url: str = "https://api.mainnet-beta.solana.com", ws_url: str = "ws://localhost:8900", 
-                 allowed_programs: list = None, use_external_surfpool: bool = False):
+                 allowed_programs: list = None, disallowed_programs: list = None, use_external_surfpool: bool = False):
         super().__init__()
 
         self.rpc_url = rpc_url
@@ -103,6 +103,7 @@ class SurfpoolEnv(gym.Env):
         
         # Program filter for specialized environments (e.g., swap-only)
         self.allowed_programs = allowed_programs or []
+        self.disallowed_programs = disallowed_programs or []
         self.test_validator_process = None
         self.agent_keypair = Keypair()
 
@@ -328,6 +329,8 @@ class SurfpoolEnv(gym.Env):
                 'data': base58.b58decode(ix.data),
             })
             # pdb.set_trace()
+            if not inner_instructions:
+                continue
             ordered_instructions.extend(
                 [{
                     'program_id': message.account_keys[inner_instruction.program_id_index],
@@ -349,7 +352,13 @@ class SurfpoolEnv(gym.Env):
                 prog_id_str = str(ix['program_id'])
                 if prog_id_str not in self.allowed_programs:
                     continue  # Skip instructions from non-allowed programs
-            
+
+            if self.disallowed_programs:
+                prog_id_str = str(ix['program_id'])
+                if prog_id_str in self.disallowed_programs:
+                    logging.info(f"disallowed_program: {prog_id_str}")
+                    continue  # Skip instructions from non-allowed programs
+
             # Check if instruction data is not empty before accessing index 0
             if len(ix['data']) > 0:
                 discriminator = ix['data'][0]

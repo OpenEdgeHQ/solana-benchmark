@@ -446,16 +446,21 @@ async def main():
     
     # Get allowed programs from environment config if available
     allowed_programs = []
+    disallowed_programs = []
     if explorer.env_config and 'reward_config' in explorer.env_config:
         allowed_programs = explorer.env_config['reward_config'].get('allowed_programs', [])
+        disallowed_programs = explorer.env_config['reward_config'].get('disallowed_programs', [])
     
     # Choose whether to start surfpool or connect to existing instance
     if use_external_surfpool:
         logging.info("Connecting to existing surfpool on localhost:8899...")
         if allowed_programs:
             logging.info(f"Program filter enabled: {len(allowed_programs)} programs allowed")
+        if disallowed_programs:
+            logging.info(f"Program filter enabled: {len(disallowed_programs)} programs disallowed")
+
         
-        env = SurfpoolEnv(allowed_programs=allowed_programs, use_external_surfpool=True)
+        env = SurfpoolEnv(allowed_programs=allowed_programs, disallowed_programs=disallowed_programs, use_external_surfpool=True)
         logging.info("Resetting environment...")
         
         await env.reset()
@@ -483,8 +488,10 @@ async def main():
             logging.info("Surfpool validator started, initializing environment...")
             if allowed_programs:
                 logging.info(f"Program filter enabled: {len(allowed_programs)} programs allowed")
+            if disallowed_programs:
+                logging.info(f"Program filter enabled: {len(disallowed_programs)} programs disallowed")
             
-            env = SurfpoolEnv(allowed_programs=allowed_programs, use_external_surfpool=True)
+            env = SurfpoolEnv(allowed_programs=allowed_programs, disallowed_programs=disallowed_programs, use_external_surfpool=True)
             logging.info("Resetting environment...")
             
             await env.reset()

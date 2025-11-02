@@ -5,6 +5,7 @@
   "package_json": "voyager/environments/basic_package.json",
   "timeout": 4000,
   "reward_config": {
+    "disallowed_programs": ["MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"]
   },
   "metrics": {
     "track_swap_programs": true,

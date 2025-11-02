@@ -110,7 +110,7 @@ cp .env.example .env
 # Single run with specific model
 export MODEL_NAME="google/gemini-2.5-flash"
 export MAX_MESSAGES=50
-export ENVIRONMENT_CONFIG="basic"
+export ENVIRONMENT_CONFIG="voyager/environments/basic_env.json"
 uv run python code_loop_explorer.py
 
 # Batch comparison of multiple models
