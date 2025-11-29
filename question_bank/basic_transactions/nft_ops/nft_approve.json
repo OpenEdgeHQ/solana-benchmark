@@ -1,0 +1,108 @@
+{
+  "id": "nft_approve",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "spl_token_ops",
+  "difficulty": "medium",
+  "title": "NFT Approve",
+  "description": [
+    "Approve another address to transfer a specific NFT token on your behalf.",
+    "",
+    "Technical context:",
+    "- Use NFT's approve(address to, uint256 tokenId) function",
+    "- Grants permission for the approved address to transfer the specific NFT",
+    "- Only one address can be approved per token at a time",
+    "- Setting approval to address(0) clears the approval",
+    "- Function selector: 0x095ea7b3",
+    "- Parameters: to (address, 32 bytes) + tokenId (uint256, 32 bytes)",
+    "- Recommended gas limit: 80000"
+  ],
+  "natural_language_templates": [
+    "Approve address {spender_address} to transfer NFT (token mint: {nft_address})",
+    "Grant approval to {spender_address} for my NFT {nft_address}",
+    "Please approve {spender_address} to manage my NFT {nft_address}",
+    "I want to authorize address {spender_address} to transfer my NFT {nft_address})"
+  ],
+  "parameters": {
+    "nft_address": {
+      "type": "address",
+      "role": "nft_contract",
+      "description": "NFT contract address",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    },
+    "spender_address": {
+      "type": "address",
+      "role": "spender",
+      "description": "Address to approve for transferring the NFT",
+      "generation": {
+        "method": "random"
+      }
+    }
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "nft_ownership",
+        "description": "Agent must own the NFT token",
+        "nft_address": "{nft_address}",
+        "token_id": "{token_id}"
+      },
+      {
+        "type": "balance",
+        "description": "Agent must have sufficient BNB for gas",
+        "min_balance": "0.01 BNB"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "address_check",
+        "field": "to",
+        "expected": "{spender_address}",
+        "weight": 20,
+        "description": "Target address must be correct"
+      },
+      {
+        "type": "value_check",
+        "weight": 20,
+        "is_ui_amount": true,
+        "expected": "1",
+        "description": "Correct instruction called"
+      },
+      {
+        "type": "instruction_check",
+        "weight": 20,
+        "expected": "approve",
+        "description": "Correct instruction called"
+      },
+      {
+        "type": "balance_change",
+        "weight": 10,
+        "description": "Token balance changed correctly",
+        "expected": "0",
+        "mint": "{nft_address}",
+        "tolerance": 0
+      }
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "nft",
+      "approve",
+      "authorization",
+      "onchain"
+    ],
+    "estimated_gas": 80000,
+    "requires_contract": true,
+    "network": "mainnet"
+  }
+}
+

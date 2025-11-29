@@ -1,0 +1,100 @@
+{
+  "id": "nft_burn",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "spl_token_ops",
+  "difficulty": "medium",
+  "title": "NFT Token Burn",
+  
+  "natural_language_templates": [
+    "Burn my NFT {nft_address}",
+    "Destroy NFT {nft_address} permanently",
+    "Remove NFT {nft_address} from my wallet",
+    "I want to burn one NFT {nft_address}"
+  ],
+  
+  "description": [
+    "Burn (destroy) NFT tokens by sending them to the burn function, permanently removing them from circulation.",
+    "Use createBurnInstruction to build tx",
+    "Technical context:",
+    "- Not all NFT tokens support burn functionality",
+    "- The burn function typically reduces totalSupply and the caller's balance",
+    "- Burned tokens cannot be recovered",
+    "",
+    "Key considerations:",
+    "- Create a Contract instance with token address and ABI including burn function",
+    "- Use contract.interface.encodeFunctionData('burn', [amount]) for the data field",
+    "- Set transaction 'to' to the token contract address",
+    "- Set transaction 'value' to 0 (not sending SOL)",
+    "- After burning, your token balance decreases",
+    "- The token's totalSupply should also decrease (if the contract updates it)"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "nft_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "NFT token contract address that supports burn",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient token balance",
+        "token": "{nft_address}",
+        "min_balance": "100 tokens"
+      },
+      {
+        "type": "contract_exists",
+        "description": "Token contract must exist",
+        "address": "{nft_address}"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "instruction_check",
+        "weight": 40,
+        "expected": "burn",
+        "description": "Correct instruction called"
+      },
+      {
+        "type": "balance_change",
+        "weight": 30,
+        "description": "Token balance changed correctly",
+        "expected": "1",
+        "mint": "{nft_address}",
+        "tolerance": 0
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["spl", "burn", "destroy", "deflation", "intermediate"],
+    "estimated_gas": 70000,
+    "requires_contract": true,
+    "requires_token_balance": true,
+    "contract_requirements": {
+      "contract_type": "NFT",
+      "required_functions": ["burn", "balanceOf"],
+      "note": "Token must support burn function and agent must have tokens"
+    }
+  }
+}

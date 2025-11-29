@@ -1,0 +1,114 @@
+{
+  "id": "composite_batch_transfer_2_sol",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "batch_transfer",
+  "difficulty": "easy",
+  "title": "Batch Transfer SOL to 2 Addresses",
+  "natural_language_templates": [
+    "Transfer {amount1} SOL to {address1} and {amount2} SOL to {address2}",
+    "Send {amount1} SOL to {address1}, then send {amount2} SOL to {address2}",
+    "Make two SOL transfers: {amount1} SOL to {address1} and {amount2} SOL to {address2}"
+  ],
+  "description": [
+    "This is a 2-step process:",
+    "1. Transfer SOL to the first address",
+    "2. Transfer SOL to the second address"
+  ],
+  "composite_structure": {
+    "pattern": "batch-transfer",
+    "optimal_steps": 2,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "sol_transfer_basic",
+        "parameter_mapping": {
+          "to_address": "address1",
+          "amount": "amount1"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "sol_transfer_basic",
+        "parameter_mapping": {
+          "to_address": "address2",
+          "amount": "amount2"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "address1": {
+      "type": "address",
+      "role": "recipient1",
+      "description": "First recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount1": {
+      "type": "number",
+      "description": "Amount of SOL to send to first address",
+      "generation": {
+        "method": "random",
+        "min": 0.01,
+        "max": 0.1,
+        "decimals": 3
+      },
+      "role": "transfer_amount1"
+    },
+    "address2": {
+      "type": "address",
+      "role": "recipient2",
+      "description": "Second recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount2": {
+      "type": "number",
+      "description": "Amount of SOL to send to second address",
+      "generation": {
+        "method": "random",
+        "min": 0.01,
+        "max": 0.1,
+        "decimals": 3
+      },
+      "role": "transfer_amount2"
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 4,
+    "optimal_steps": 2,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "sol_transfer_basic",
+    "key_operation_step": 2
+  },
+  "validation": {
+    "pre_conditions": [
+    ],
+    "post_conditions": [
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "batch",
+      "native",
+      "transfer",
+      "easy",
+      "two-step"
+    ],
+    "estimated_gas": 42000,
+    "requires_approval": false,
+    "difficulty_notes": [
+      "Simple batch transfer of native SOL",
+      "Two separate transactions",
+      "No contract interaction required"
+    ]
+  }
+}
+

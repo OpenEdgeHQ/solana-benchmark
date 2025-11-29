@@ -1,0 +1,118 @@
+{
+  "id": "spl_burn",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "spl_token_ops",
+  "difficulty": "medium",
+  "title": "SPL Token Burn",
+  
+  "natural_language_templates": [
+    "Burn {amount} {token_address} tokens",
+    "Destroy {amount} {token_address} tokens permanently",
+    "Remove {amount} {token_address} from circulation",
+    "I want to burn {amount} {token_address}"
+  ],
+  
+  "description": [
+    "Burn (destroy) SPL tokens by sending them to the burn function, permanently removing them from circulation.",
+    "Use createBurnInstruction to build tx",
+    "Technical context:",
+    "- Not all SPL tokens support burn functionality",
+    "- Common burn function signatures: burn(uint256) or burn(uint256 amount)",
+    "- The burn function typically reduces totalSupply and the caller's balance",
+    "- Burned tokens cannot be recovered",
+    "- Function signature: burn(uint256)",
+    "- Recommended gas limit: 70000",
+    "",
+    "Key considerations:",
+    "- Create a Contract instance with token address and ABI including burn function",
+    "- Use contract.interface.encodeFunctionData('burn', [amount]) for the data field",
+    "- Set transaction 'to' to the token contract address",
+    "- Set transaction 'value' to 0 (not sending SOL)",
+    "- After burning, your token balance decreases",
+    "- The token's totalSupply should also decrease (if the contract updates it)"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address that supports burn",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount of tokens to burn",
+      "generation": {
+        "min": 0.001,
+        "max": 1.0,
+        "decimals": 3
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient token balance",
+        "token": "{token_address}",
+        "min_balance": "100 tokens"
+      },
+      {
+        "type": "contract_exists",
+        "description": "Token contract must exist",
+        "address": "{token_address}"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "value_check",
+        "weight": 20,
+        "expected": "{amount}",
+        "description": "Correct instruction called"
+      },
+      {
+        "type": "instruction_check",
+        "weight": 30,
+        "expected": "burn",
+        "description": "Correct instruction called"
+      },
+      {
+        "type": "balance_change",
+        "weight": 20,
+        "description": "Token balance changed correctly",
+        "expected": "{amount}",
+        "mint": "{token_address}",
+        "tolerance": 0
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["spl", "burn", "destroy", "deflation", "intermediate"],
+    "estimated_gas": 70000,
+    "requires_contract": true,
+    "requires_token_balance": true,
+    "contract_requirements": {
+      "contract_type": "SPL",
+      "required_functions": ["burn", "balanceOf"],
+      "note": "Token must support burn function and agent must have tokens"
+    }
+  }
+}

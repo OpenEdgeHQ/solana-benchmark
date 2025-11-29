@@ -1,0 +1,71 @@
+{
+  "id": "query_sol_balance",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "queries",
+  "difficulty": "easy",
+  "title": "Query SOL Balance",
+  
+  "description": [
+    "Query the SOL balance of a specific address.",
+    "",
+    "Technical context:",
+    "- This is a read-only operation, no transaction is required",
+    "- Balance should be returned as BigInt or string",
+    "",
+    "Key considerations:",
+    "- Use ethers.js provider.getBalance() method",
+    "- Return the balance value in the result object",
+    "- Include both raw Wei value and human-readable SOL value",
+    "- No transaction signing or gas fee required"
+  ],
+  
+  "natural_language_templates": [
+    "Query the SOL balance of address {query_address}",
+    "Check the SOL balance for {query_address}",
+    "Get the SOL balance of {query_address}",
+    "What is the SOL balance of address {query_address}?"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "query_address": {
+      "type": "address",
+      "role": "query_target",
+      "description": "Address to query SOL balance for",
+      "generation": {
+        "method": "random",
+        "comment": "Random address for query operation"
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "address_exists",
+        "description": "Query address must be valid"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "query_balance",
+        "weight": 100,
+        "owner": "{query_address}",
+        "description": "Query executed successfully"
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["query", "balance", "sol", "read-only", "basic"],
+    "estimated_gas": 0,
+    "requires_contract": false,
+    "operation_type": "query"
+  }
+}
+

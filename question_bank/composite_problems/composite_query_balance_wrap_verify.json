@@ -1,0 +1,88 @@
+{
+  "id": "composite_query_balance_wrap_verify",
+  "category": "composite_problems",
+  "difficulty": "medium",
+  "title": "Query SOL Balance, Wrap SOL to WSOL, and Verify",
+  "description": [
+    "A composite problem that tests the LLM's ability to:",
+    "1. Query initial SOL balance",
+    "2. Execute a WSOL deposit (wrap SOL to WSOL)",
+    "3. Query final WSOL balance to verify the wrap"
+  ],
+  "natural_language_templates": [
+    "Check your SOL balance, wrap {amount} SOL to WSOL, then verify your WSOL balance",
+    "Query SOL balance, deposit {amount} SOL to WSOL contract, and confirm WSOL received"
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "composite_structure": {
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_sol_balance",
+        "description": "Query initial SOL balance",
+        "parameter_mapping": {
+          "query_address": "agent_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "wsol_deposit",
+        "description": "Wrap SOL to WSOL",
+        "parameter_mapping": {
+          "amount": "amount"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_spl_token_balance",
+        "description": "Query final WSOL balance",
+        "parameter_mapping": {
+          "token_address": "token_address"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "generation": {
+        "method": "fixed",
+        "value": "So11111111111111111111111111111111111111112"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "unit": "SOL",
+      "role": "wrap_amount",
+      "description": "Amount of SOL to wrap",
+      "shared_across_steps": [2],
+      "generation": {
+        "method": "random",
+        "min": 0.1,
+        "max": 0.5,
+        "decimals": 3
+      }
+    }
+  },
+  "interaction_config": {
+    "optimal_steps": 2,
+    "max_rounds_multiplier": 2,
+    "comment": "max_rounds = optimal_steps * max_rounds_multiplier = 2 * 2 = 4"
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "description": "Directly reuse the atomic validator of the key operation - NO code duplication!",
+    "key_operation_step": 2,
+    "key_operation_id": "wsol_deposit",
+    "key_operation_alias": "sol_wrap",
+    "validator_class": "WSOLDepositValidator",
+    "note": "The validator will load WSOLDepositValidator and call its validate() method directly"
+  },
+  "tags": ["query-write-verify", "wrap"]
+}
+

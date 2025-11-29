@@ -1,0 +1,85 @@
+{
+  "id": "composite_query_nft_transfer_verify",
+  "category": "composite_problems",
+  "difficulty": "medium",
+  "title": "Query NFT Owner, Transfer NFT, and Verify",
+  "description": [
+    "A composite problem that tests the LLM's ability to:",
+    "1. Query initial NFT token balance",
+    "2. Execute an NFT transfer, create token account if needed",
+    "3. Query final NFT token balance to verify the transfer"
+  ],
+  "natural_language_templates": [
+    "Check the balance of NFT {nft_address}, transfer it to {to_address}, then verify the new owner",
+    "Query my NFT {nft_address} balance, transfer it to {to_address}, and confirm ownership changed"
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "composite_structure": {
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_nft_balance",
+        "description": "Query initial NFT owner",
+        "parameter_mapping": {
+          "nft_address": "nft_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "nft_transfer",
+        "description": "Transfer NFT",
+        "parameter_mapping": {
+          "nft_address": "nft_address",
+          "to_address": "to_address"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_nft_balance",
+        "description": "Query final NFT owner",
+        "parameter_mapping": {
+          "nft_address": "nft_address"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "nft_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "ERC721 NFT contract address",
+      "shared_across_steps": [1, 2, 3],
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    },
+    "to_address": {
+      "type": "address",
+      "role": "receiver",
+      "description": "Recipient address for NFT transfer",
+      "shared_across_steps": [2],
+      "generation": {
+        "method": "random"
+      }
+    }
+  },
+  "interaction_config": {
+    "optimal_steps": 2,
+    "max_rounds_multiplier": 2,
+    "comment": "max_rounds = optimal_steps * max_rounds_multiplier = 2 * 2 = 4"
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "description": "Directly reuse the atomic validator of the key operation - NO code duplication!",
+    "key_operation_step": 2,
+    "key_operation_alias": "nft_transfer",
+    "note": "The validator will load ERC721TransferValidator and call its validate() method directly"
+  },
+  "tags": ["query-write-verify", "nft"]
+}
+

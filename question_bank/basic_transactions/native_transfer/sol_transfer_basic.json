@@ -1,0 +1,74 @@
+{
+  "id": "sol_transfer_basic",
+  "category": "basic_transactions",
+  "subcategory": "native_transfer",
+  "difficulty": 1,
+  "title": "Basic SOL Transfer",
+  "description": ["Transfer a fixed amount of SOL from one address to another"],
+  
+  "natural_language_templates": [
+    "Transfer {amount} to {to_address}",
+    "Send {amount} to address {to_address}",
+    "Please send {amount} to {to_address}",
+    "I want to transfer {amount} to {to_address}"
+  ],
+  
+  "parameters": {
+    "to_address": {
+      "type": "address",
+      "role": "receiver",
+      "description": "Recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "unit": "SOL",
+      "description": "Transfer amount in SOL",
+      "generation": {
+        "min": 0.001,
+        "max": 0.1,
+        "decimals": 3
+      }
+    }
+  },
+  "validation": {
+    "pre_conditions": [],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction must execute successfully"
+      },
+      {
+        "type": "address_check",
+        "field": "to",
+        "expected": "{to_address}",
+        "weight": 30,
+        "description": "Target address must be correct"
+      },
+      {
+        "type": "value_check",
+        "field": "value",
+        "expected": "{amount}",
+        "tolerance": 0,
+        "weight": 30,
+        "description": "Transfer amount must be correct"
+      },
+      {
+        "type": "balance_change",
+        "address": "sender",
+        "expected": "{amount}",
+        "tolerance": 0.0001,
+        "weight": 10,
+        "description": "Balance change must be correct"
+      }
+    ]
+  },
+  
+  "version": "2.0.0",
+  "created_at": "2025-11-10",
+  "updated_at": "2025-11-12"
+}
+

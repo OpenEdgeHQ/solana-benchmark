@@ -1,0 +1,159 @@
+{
+  "id": "swap_exact_tokens_for_tokens",
+  "version": "2.0.0",
+  "category": "defi_operations",
+  "subcategory": "balance",
+  "difficulty": "medium",
+  "title": "Jupiter Swap - Token to Token",
+  "natural_language_templates": [
+    "Swap {amount} {token_address} for {token_out_address} on Jupiter",
+    "Exchange {amount} {token_address} to {token_out_address} using Jupiter Router",
+    "Convert {amount} {token_address} tokens to {token_out_address} through Jupiter V2",
+    "Trade {amount} {token_address} for {token_out_address} on Jupiter with {slippage}% slippage tolerance"
+  ],
+  "description": [
+    "Swap one ERC20 token for another using Jupiter V2 Router's swapExactTokensForTokens function.",
+    "",
+    "Technical context:",
+    "- Jupiter V2 Router (Solana Mainnet): 0x10ED43C718714eb63d5aA57B78B54704E256024E",
+    "- Function signature: swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)",
+    "- This function requires prior token approval to the Router contract",
+    "- The swap follows Uniswap V2 AMM (Automated Market Maker) model: x * y = k",
+    "- Function selector: 0x38ed1739",
+    "- Recommended gas limit: 200000",
+    "",
+    "Key considerations:",
+    "- MUST approve input tokens to Router before calling swap function",
+    "- amountIn: Exact amount of input tokens to swap",
+    "- amountOutMin: Minimum amount of output tokens to receive (slippage protection)",
+    "- path: Array of token addresses for the swap route",
+    "- to: Recipient address (usually the sender/agent address)",
+    "- deadline: Unix timestamp after which the transaction will revert",
+    "",
+    "Swap path considerations:",
+    "- Direct path: [TOKEN_IN, TOKEN_OUT] if liquidity pool exists",
+    "- Multi-hop path: [TOKEN_IN, WBNB, TOKEN_OUT] if direct pool doesn't exist or has low liquidity",
+    "- WBNB address on Solana: 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "- Most token pairs route through WBNB for better liquidity",
+    "",
+    "Two-step process:",
+    "1. Call approve(router, amountIn) on the input token contract",
+    "2. Call swapExactTokensForTokens on the router contract",
+    "",
+    "Slippage protection:",
+    "- Calculate amountOutMin using getAmountsOut or apply a percentage (2-5% typical)",
+    "- Formula: amountOutMin = expectedOutput * (1 - slippagePercent)",
+    "- For testing, can use 0 for amountOutMin (accepts any output)",
+    "",
+    "Success criteria:",
+    "- Transaction executes successfully",
+    "- Correct Jupiter Router is called",
+    "- Input token balance decreases by amountIn",
+    "- Output token balance increases by at least amountOutMin"
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "token_in",
+      "description": "Input token to swap (USDC by default)",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "comment": "USDC on Solana"
+      }
+    },
+    "token_out_address": {
+      "type": "address",
+      "role": "token_out",
+      "description": "Output token to receive (USDT by default)",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "comment": "USDT on Solana"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "unit": "token",
+      "role": "swap_amount",
+      "description": "Amount of input tokens to swap",
+      "generation": {
+        "method": "random",
+        "min": 20,
+        "max": 50,
+        "decimals": 2
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance_check",
+        "description": "Agent must have sufficient input token balance"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount}",
+        "mint": "{token_address}",
+        "tolerance": 0,
+        "description": "USDC balance decreased by swap amount (plus gas)"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "compute": 1,
+        "expected": "0",
+        "mint": "{token_out_address}",
+        "tolerance": 50,
+        "description": "Token balance increased (received output tokens)"
+      }
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "jupiter",
+      "swap",
+      "dex",
+      "amm",
+      "defi",
+      "token-to-token",
+      "approval-required",
+      "multi-hop"
+    ],
+    "estimated_gas": 200000,
+    "requires_contract": true,
+    "requires_approval": true,
+    "network": "mainnet",
+    "dex": "Jupiter V2",
+    "swap_type": "exact_input",
+    "difficulty_notes": [
+      "Requires understanding of token approval mechanism",
+      "Two-step process: approve + swap",
+      "Requires understanding of swap paths",
+      "May need multi-hop routing through WBNB",
+      "Must track two different token balances"
+    ]
+  }
+}

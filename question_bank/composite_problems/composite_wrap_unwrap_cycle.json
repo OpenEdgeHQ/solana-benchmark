@@ -1,0 +1,82 @@
+{
+  "id": "composite_wrap_unwrap_cycle",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "wrap_unwrap",
+  "difficulty": "easy",
+  "title": "Wrap SOL and Unwrap Back to SOL (Cycle Test)",
+  "natural_language_templates": [
+    "Wrap {amount} SOL to WSOL, then immediately unwrap all WSOL back to SOL",
+    "Deposit {amount} SOL to WSOL and withdraw it back to SOL",
+    "Convert {amount} SOL to WSOL, then convert it back to native SOL"
+  ],
+  "description": [
+    "This is a 2-step process:",
+    "1. Deposit SOL to WSOL contract",
+    "2. Withdraw WSOL back to SOL"
+  ],
+  "composite_structure": {
+    "pattern": "wrap-unwrap",
+    "optimal_steps": 2,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "wsol_deposit",
+        "parameter_mapping": {
+            "amount": "amount"
+          }
+      },
+      {
+        "step": 2,
+        "atomic_id": "wsol_withdraw",
+        "parameter_mapping": {
+          }
+      }
+    ]
+  },
+  "parameters": {
+    "amount": {
+      "type": "number",
+      "generation": {
+        "method": "random",
+        "min": 0.01,
+        "max": 0.1,
+        "decimals": 3
+      },
+      "role": "wrap_amount"
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 4,
+    "optimal_steps": 2,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "wsol_withdraw",
+    "key_operation_step": 2
+  },
+  "validation": {
+    "pre_conditions": [
+    ],
+    "post_conditions": [
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "wrap-unwrap",
+      "test",
+      "cycle",
+      "easy",
+      "two-step"
+    ],
+    "estimated_gas": 120000,
+    "requires_approval": false,
+    "difficulty_notes": [
+      "Simple two-step process",
+      "No approval required"
+    ]
+  }
+}
+

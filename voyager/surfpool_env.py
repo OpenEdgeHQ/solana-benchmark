@@ -19,6 +19,17 @@ from solders.message import MessageV0, to_bytes_versioned
 from solders.pubkey import Pubkey
 from solders.null_signer import NullSigner
 from solders.signature import Signature
+from typing import Dict, Any, List
+from solders.transaction_status import ParsedInstruction
+from decimal import Decimal
+from spl.token.client import Token
+from spl.token.constants import TOKEN_PROGRAM_ID
+from spl.token.instructions import get_associated_token_address, sync_native, SyncNativeParams
+from solders.transaction import Transaction
+from solders.message import Message
+from solana.rpc.api import Client
+from voyager.utils.validator import calculate_reward
+from voyager.utils.prepare_token import _mint_spl_token, _create_and_mint_nft, _wrap_sol
 
 load_dotenv(join(dirname(__file__), '.env'))
 
@@ -100,12 +111,14 @@ class SurfpoolEnv(gym.Env):
         self.use_external_surfpool = use_external_surfpool
         # The client for the Voyager environment will connect to the surfpool instance
         self.client = AsyncClient("http://127.0.0.1:8899", "confirmed")
+        self.syncClient = Client("http://127.0.0.1:8899", "confirmed")
         
         # Program filter for specialized environments (e.g., swap-only)
         self.allowed_programs = allowed_programs or []
         self.disallowed_programs = disallowed_programs or []
         self.test_validator_process = None
         self.agent_keypair = Keypair()
+        self.agent_keypair_bs58 = base58.b58encode(bytes(self.agent_keypair)).decode('utf-8')
 
         self.program_instructions_seen = {}
         self.last_observation = None
@@ -117,6 +130,8 @@ class SurfpoolEnv(gym.Env):
         # Transaction efficiency tracking
         self.last_tx_instruction_count = 0
         self.last_tx_reward = 0
+        self.token_mints = []
+        self.nft_mints = []
 
 
     async def _get_observation(self, last_tx_result=None):
@@ -146,7 +161,6 @@ class SurfpoolEnv(gym.Env):
             "discovered_instructions_by_program": discovered_instructions_by_program,
             "total_reward": len(self.program_instructions_seen),
             "unique_instructions_found": len(self.program_instructions_seen),
-            "last_tx_instruction_count": self.last_tx_instruction_count,
             "last_tx_reward": self.last_tx_reward
         }
 
@@ -220,19 +234,26 @@ class SurfpoolEnv(gym.Env):
 
         # Create a new agent for the episode
         self.agent_keypair = Keypair()
+        self.agent_keypair_bs58 = base58.b58encode(bytes(self.agent_keypair)).decode('utf-8')
         # DO NOT reset program_instructions_seen - it should persist across episodes!
         # self.program_instructions_seen = {}  # <-- This was the bug!
         
         # Reset transaction tracking
-        self.last_tx_instruction_count = 0
         self.last_tx_reward = 0
         
         # Fund the agent
         try:
+            logging.info(f"Keypair {self.agent_keypair_bs58}")
             logging.info(f"Airdropping SOL to {self.agent_keypair.pubkey()}...")
-            airdrop_sig = await self.client.request_airdrop(self.agent_keypair.pubkey(), 2 * 10**9) # 2 SOL
+            airdrop_sig = await self.client.request_airdrop(self.agent_keypair.pubkey(), 10 * 10**9) # 5 SOL
             await self.client.confirm_transaction(airdrop_sig.value, "confirmed", 30.0)
             logging.info("Airdrop successful.")
+            # Convert WSOL
+            _wrap_sol(self.agent_keypair, self.syncClient, 2 * 10 ** 9)
+            # Mint some spl tokens
+            self.token_mints = _mint_spl_token(self.agent_keypair, self.syncClient, 1)
+            # Mint NFTs
+            self.nft_mints = _create_and_mint_nft(self.agent_keypair_bs58)
         except Exception as e:
             logging.error(f"Airdrop failed: {e}", exc_info=True)
             return None, {"error": f"Airdrop failed: {e}"}
@@ -243,25 +264,49 @@ class SurfpoolEnv(gym.Env):
         return observation, info
 
 
-    async def step(self, tx):
+    async def step(self, results: List, question):
+        if question["category"] == "composite_problems":
+            total_step_reward = 0
+            composite_sub_ops = question["composite_structure"]["atomic_operations"]
+            for idx, op in enumerate(composite_sub_ops):
+                obs, step_reward, _, _, info = await self.step_automic(results[idx], op["question"])
+                total_step_reward += step_reward
+                final_info = info
+                final_obs = obs
+                logging.info(f"reward: {step_reward}, total: {total_step_reward}")
+            return final_obs, total_step_reward, False, False, final_info
+        else:
+            return await self.step_automic(results[0], question)
+
+    async def step_automic(self, tx, question):
         """
         Executes a pre-signed transaction on the Solana network.
         This is the core function of the low-level environment.
         The transaction must be signed before being passed to this method.
         """
+
+        if (question.get("subcategory")) == "queries":
+            reward = await calculate_reward(tx, question, str(self.agent_keypair.pubkey()))
+            self.last_tx_reward = reward
+            self.total_reward += reward
+            obs = await self._get_observation()
+            return obs, reward, False, False, {"reward": reward}
+
         self.last_tx_receipt = None
         try:
-            # The modern send_transaction expects a signed transaction
-            sig = await self.client.send_transaction(tx)
+            # # The modern send_transaction expects a signed transaction
+            # sig = await self.client.send_transaction(tx)
+            sig = Signature.from_string(tx)
             
-            # The commitment level for confirmation should be high enough
-            await self.client.confirm_transaction(sig.value, "confirmed", 30.0)
+            # # The commitment level for confirmation should be high enough
+            # await self.client.confirm_transaction(sig.value, "confirmed", 10.0)
             
             # Fetch the confirmed transaction
-            result = await self.client.get_transaction(sig.value, commitment="confirmed")
+            
+            result = await self.client.get_transaction(sig, encoding="jsonParsed", commitment="confirmed")
             
             if not result or not result.value:
-                 raise Exception(f"Transaction result not found for signature {sig.value}")
+                 raise Exception(f"Transaction result not found for signature {sig}")
 
             tx_receipt = result.value.transaction.to_json()
             self.last_tx_receipt = tx_receipt
@@ -284,97 +329,19 @@ class SurfpoolEnv(gym.Env):
 
         self.last_tx_receipt = tx_receipt
         
-        # Extract programs from this transaction for the info dict
-        ordered_instructions = self._get_ordered_instructions(result)
-        programs_in_tx = list({str(ix['program_id']) for ix in ordered_instructions})
-        
-        # Track instruction count for this transaction
-        self.last_tx_instruction_count = len(ordered_instructions)
-        
-        reward = self._calculate_reward(result)
+        reward = await calculate_reward(result, question, str(self.agent_keypair.pubkey()))
         self.last_tx_reward = reward
         self.total_reward += reward
         
         # Get observation after updating metrics
         obs = await self._get_observation(last_tx_result=tx_receipt)
         
-        # Build unique instructions per program for this transaction
-        unique_instructions_this_tx = {}
-        for ix in ordered_instructions:
-            prog_id = str(ix['program_id'])
-            if len(ix['data']) > 0:
-                discriminator = ix['data'][0]
-            else:
-                discriminator = 0
-            
-            if prog_id not in unique_instructions_this_tx:
-                unique_instructions_this_tx[prog_id] = []
-            unique_instructions_this_tx[prog_id].append(discriminator)
-        
         return obs, reward, False, False, { 
-            "tx_sig": str(sig.value), 
+            "tx_sig": str(sig), 
             "tx_meta": result.value.to_json(),
-            "programs_interacted": programs_in_tx,
-            "unique_instructions": unique_instructions_this_tx,
             "reward": reward
         }
 
-    def _get_ordered_instructions(self, tx_result: GetTransactionResp) -> list[dict[str, bytes]]:
-        inner_instructions = {ix.index: ix.instructions for ix in tx_result.value.transaction.meta.inner_instructions}
-        message = tx_result.value.transaction.transaction.message
-        ordered_instructions = []
-        for idx, ix in enumerate(message.instructions):
-            ordered_instructions.append({
-                'program_id': message.account_keys[ix.program_id_index],
-                'data': base58.b58decode(ix.data),
-            })
-            # pdb.set_trace()
-            if not inner_instructions:
-                continue
-            ordered_instructions.extend(
-                [{
-                    'program_id': message.account_keys[inner_instruction.program_id_index],
-                    'data': base58.b58decode(inner_instruction.data),
-                } for inner_instruction in inner_instructions[idx]]
-            )
-        return ordered_instructions
-    
-    def _calculate_reward(self, tx_result: GetTransactionResp) -> float:
-        if tx_result.value.transaction.meta.err:
-            return 0
-
-        ordered_instructions = self._get_ordered_instructions(tx_result)
-
-        reward = 0
-        for ix in ordered_instructions:
-            # If we have an allowed programs filter, check if this program is allowed
-            if self.allowed_programs:
-                prog_id_str = str(ix['program_id'])
-                if prog_id_str not in self.allowed_programs:
-                    continue  # Skip instructions from non-allowed programs
-
-            if self.disallowed_programs:
-                prog_id_str = str(ix['program_id'])
-                if prog_id_str in self.disallowed_programs:
-                    logging.info(f"disallowed_program: {prog_id_str}")
-                    continue  # Skip instructions from non-allowed programs
-
-            # Check if instruction data is not empty before accessing index 0
-            if len(ix['data']) > 0:
-                discriminator = ix['data'][0]
-            else:
-                discriminator = 0  # Default discriminator for empty data
-            
-            key = (ix['program_id'], discriminator)
-            if key not in self.program_instructions_seen:
-                reward += 1
-                self.program_instructions_seen[key] = True
-                if self.allowed_programs:
-                    logging.info(f"🔄 Discovered new swap instruction ({str(key[0])[:8]}..., disc:{str(key[1])})")
-                else:
-                    logging.info(f"Discovered new program instruction ({str(key[0])}, {str(key[1])})")
-        return reward
-    
     def render(self, mode="human"):
         logging.info("Rendering not implemented for this environment.")
         pass

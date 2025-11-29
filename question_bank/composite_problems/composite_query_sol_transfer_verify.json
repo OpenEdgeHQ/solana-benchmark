@@ -1,0 +1,107 @@
+{
+  "id": "composite_query_sol_transfer_verify",
+  "category": "composite_problems",
+  "difficulty": "easy",
+  "tags": ["composite", "query-write-verify", "basic", "native", "sol"],
+  
+  "natural_language_templates": [
+    "Check your SOL balance, transfer {amount} SOL to {to_address}, then verify your remaining balance",
+    "Query your SOL balance, send {amount} SOL to {to_address}, and confirm the transfer succeeded",
+    "First check how much SOL you have, then send {amount} SOL to {to_address}, and verify the transaction",
+    "Query your current SOL balance, transfer {amount} SOL to {to_address}, then check your balance again to verify"
+  ],
+  
+  "parameters": {
+    "to_address": {
+      "type": "address",
+      "generation_method": "random",
+      "description": "Recipient address for SOL transfer"
+    },
+    "amount": {
+      "type": "number",
+      "generation_method": "random",
+      "min": 0.1,
+      "max": 0.5,
+      "decimals": 2,
+      "description": "Amount of SOL to transfer (in SOL, not Wei)"
+    }
+  },
+  
+  "composite_structure": {
+    "description": "Query-Write-Verify pattern for native SOL transfer",
+    
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_sol_balance",
+        "description": "Query initial SOL balance",
+        "parameter_mapping": {
+          "query_address": "agent_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "sol_transfer_basic",
+        "description": "Transfer SOL to recipient",
+        "key_operation": true,
+        "parameter_mapping": {
+          "to_address": "to_address",
+          "amount": "amount"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_sol_balance",
+        "description": "Query final SOL balance (optional verification step)",
+        "optional": true,
+        "parameter_mapping": {
+          "query_address": "agent_address"
+        }
+      }
+    ],
+    
+    "interaction_config": {
+      "optimal_steps": 2,
+      "max_rounds_multiplier": 2,
+      "allow_error_report": true,
+      "require_submit": true
+    },
+    
+    "scoring_strategy": {
+      "method": "atomic_validator_reuse",
+      "key_operation_step": 2,
+      "key_operation_id": "sol_transfer_basic",
+      "description": "Reuse SOL transfer validator for scoring"
+      }
+  },
+  
+  "validation": {
+    "post_conditions": [],
+    "validator": "composite",
+    "success_criteria": [
+      "Initial SOL balance queried successfully",
+      "SOL transfer executed successfully",
+      "Correct amount transferred",
+      "Recipient address matches",
+      "Transaction confirmed on chain"
+    ],
+    "error_scenarios": [
+      {
+        "type": "SOL_INSUFFICIENT_BALANCE",
+        "condition": "SOL balance < transfer amount + gas",
+        "expected_behavior": "LLM should detect and report error"
+      }
+    ]
+  },
+  
+  "metadata": {
+  "priority": "P0",
+    "estimated_dev_time": "30 minutes",
+    "created_date": "2025-11-24",
+    "related_atomic_problems": [
+      "query_sol_balance",
+      "sol_transfer_basic"
+    ],
+    "notes": "First composite problem for native SOL operations."
+}
+}

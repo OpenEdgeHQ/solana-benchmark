@@ -1,0 +1,228 @@
+{
+  "id": "composite_query_erc20_transfer_verify",
+  "version": "2.0.0",
+  "category": "composite_problems",
+  "subcategory": "basic_workflows",
+  "difficulty": "medium",
+  "title": "Query-Transfer-Verify SPL Workflow",
+  
+  "description": [
+    "You should do this steps:",
+    "1. Query initial SPL token balance",
+    "2. Execute a token transfer",
+    "3. Query final balance to verify the transfer"
+  ],
+  
+  "natural_language_templates": [
+    "Check your {token_address} balance, transfer {amount} {token_address} to {to_address}, then verify your new balance",
+    "Query your {token_address} balance, send {amount} tokens to {to_address}, and confirm the balance decreased correctly",
+    "First check how much {token_address} you have, then transfer {amount} {token_address} to {to_address}, and finally verify the transfer succeeded",
+    "Query balance of {token_address}, transfer {amount} to {to_address}, and check your remaining balance"
+  ],
+  
+  "blockchain": {
+    "chain": "BSC",
+    "network": "mainnet"
+  },
+  
+  "composite_structure": {
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_spl_token_balance",
+        "alias": "pre_balance_query",
+        "description": "Query initial token balance",
+        "purpose": "information_gathering",
+        "parameter_mapping": {
+          "token_address": "token_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "spl_transfer_fixed",
+        "alias": "token_transfer",
+        "description": "Transfer tokens to recipient",
+        "purpose": "main_operation",
+        "parameter_mapping": {
+          "token_address": "token_address",
+          "to_address": "to_address",
+          "amount": "amount"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_spl_token_balance",
+        "alias": "post_balance_query",
+        "description": "Query final token balance to verify transfer",
+        "purpose": "verification",
+        "parameter_mapping": {
+          "token_address": "token_address"
+        }
+      }
+    ],
+    
+    "interaction_config": {
+      "max_rounds": 6,
+      "allow_error_report": true,
+      "require_submit": true
+    },
+    
+    "scoring_strategy": {
+      "method": "key_operation_focused",
+      "description": "Focus scoring on the transfer operation (step 2), queries are informational",
+      "key_operation": "token_transfer",
+      "scoring_components": [
+        {
+          "source": "erc20_transfer_fixed",
+          "check": "transaction_success",
+          "weight": 0.3,
+          "description": "Transfer transaction must succeed"
+        },
+        {
+          "source": "erc20_transfer_fixed",
+          "check": "contract_call",
+          "weight": 0.2,
+          "description": "Must call correct token contract"
+        },
+        {
+          "source": "erc20_transfer_fixed",
+          "check": "function_signature",
+          "weight": 0.1,
+          "description": "Must use correct transfer function"
+        },
+        {
+          "source": "parameter_compliance",
+          "check": "transfer_amount",
+          "weight": 0.2,
+          "description": "Transfer amount must match requirement exactly"
+        },
+        {
+          "source": "parameter_compliance",
+          "check": "recipient_address",
+          "weight": 0.2,
+          "description": "Recipient address must match requirement exactly"
+        }
+      ],
+      "total_weight": 1.0
+    }
+  },
+  
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "shared_across_steps": [1, 2, 3],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    },
+    "to_address": {
+      "type": "address",
+      "role": "receiver",
+      "description": "Recipient address for transfer (CRITICAL: must not be modified)",
+      "used_in_step": 2,
+      "compliance_check": "strict",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "role": "transfer_amount",
+      "description": "Transfer amount in tokens (CRITICAL: must not be modified)",
+      "used_in_step": 2,
+      "compliance_check": "strict",
+      "generation": {
+        "method": "random",
+        "min": 1.0,
+        "max": 50.0,
+        "decimals": 2
+      }
+    }
+  },
+  
+  "test_scenarios": {
+    "normal_case": {
+      "description": "Sufficient balance, normal transfer",
+      "initial_balance": 200.0,
+      "expected_behavior": "Complete transfer successfully",
+      "expected_score": 100
+    },
+    "insufficient_balance_case": {
+      "description": "Balance < transfer amount",
+      "initial_balance": 0.5,
+      "transfer_amount": 10.0,
+      "expected_behavior": "Report TOKEN_INSUFFICIENT_BALANCE error",
+      "expected_score": 100
+    },
+    "parameter_modification_case": {
+      "description": "LLM modifies transfer amount or address",
+      "initial_balance": 200.0,
+      "expected_behavior": "If parameters modified, score = 0 (UNAUTHORIZED_MODIFICATION)",
+      "expected_score": 0
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have token balance (may be insufficient to test error handling)",
+        "setup": "Set balance based on test scenario"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "composite_validation",
+        "weight": 1.0,
+        "description": "Validate based on submission type (error report or task completion)",
+        "validation_modes": {
+          "error_report": {
+            "description": "If LLM reports error, verify error is valid",
+            "checks": [
+              {
+                "error_type": "TOKEN_INSUFFICIENT_BALANCE",
+                "condition": "actual_balance < required_amount",
+                "score_if_valid": 100,
+                "score_if_invalid": 0
+              }
+            ]
+          },
+          "task_completion": {
+            "description": "If LLM submits task completion, verify transfer and parameters",
+            "checks": [
+              {
+                "type": "parameter_compliance",
+                "critical": true,
+                "description": "Transfer amount and address must match requirements exactly"
+              },
+              {
+                "type": "key_operation_scoring",
+                "description": "Score based on transfer operation quality"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["composite", "query-write-verify", "basic", "token", "erc20", "P0"],
+    "estimated_gas": 150000,
+    "requires_contract": true,
+    "composite_type": "sequential",
+    "atomic_count": 3,
+    "priority": "P0",
+    "development_time": "30min",
+    "difficulty_notes": [
+      "Tests basic multi-step workflow",
+      "Requires balance checking before transfer",
+      "Demonstrates query-action-verify pattern",
+      "Tests parameter compliance (critical feature)"
+    ]
+  }
+}
+

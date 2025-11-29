@@ -1,0 +1,116 @@
+{
+  "id": "sol_transfer_to_contract",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "native_transfer",
+  "difficulty": "easy",
+  "title": "SOL Transfer to Contract",
+  
+  "natural_language_templates": [
+    "Transfer {amount} SOL to contract address {contract_address}",
+    "Send {amount} SOL to the smart contract at {contract_address}",
+    "Please transfer {amount} SOL to contract {contract_address}",
+    "I want to send {amount} SOL to the contract address {contract_address}"
+  ],
+  
+  "description": [
+    "Test the agent's ability to transfer SOL to a smart contract address.",
+    "",
+    "Technical context:",
+    "- The target is a WSOL (Wrapped SOL) contract that accepts SOL transfers",
+    "- WSOL has a receive() function that calls deposit() internally",
+    "- This requires more gas than a simple transfer due to storage writes and event emissions",
+    "- Recommended gasLimit: 60000 or higher (vs 21000 for EOA transfers)",
+    "",
+    "Key considerations:",
+    "- Verify the target address is a contract before sending",
+    "- Set appropriate gas limit for contract interaction",
+    "- Use standard EIP-1559 transaction format"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "contract_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "Target contract address (must be a contract, not EOA)",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+          ""
+        ],
+        "comment": "Solana Mainnet WSOL - guaranteed to accept SOL transfers via receive() function"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "unit": "SOL",
+      "description": "Transfer amount in SOL",
+      "generation": {
+        "min": 0.001,
+        "max": 0.05,
+        "decimals": 3
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "balance",
+        "description": "Agent must have sufficient SOL balance",
+        "min_balance": "0.2 SOL"
+      },
+      {
+        "type": "contract_exists",
+        "description": "Target address must be a contract",
+        "address": "{contract_address}"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "value_check",
+        "weight": 30,
+        "description": "Correct amount of SOL transferred",
+        "expected": "{amount}",
+        "tolerance": 0
+      },
+      {
+        "type": "address_check",
+        "weight": 20,
+        "description": "SOL sent to correct contract address",
+        "expected": "{contract_address}"
+      },
+      {
+        "type": "balance_change",
+        "compute": 1,
+        "weight": 20,
+        "description": "Contract balance increased correctly",
+        "expected": "{amount}",
+        "tolerance": 0
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["native_transfer", "sol", "contract", "payable", "basic", "wsol"],
+    "estimated_gas": 60000,
+    "requires_contract": true,
+    "contract_requirements": {
+      "must_be_payable": true,
+      "must_accept_sol": true,
+      "note": "WSOL deposit requires ~50-60k gas for storage write and event emission"
+    }
+  }
+}
+

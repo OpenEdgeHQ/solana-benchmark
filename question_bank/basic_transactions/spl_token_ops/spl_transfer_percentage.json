@@ -1,0 +1,120 @@
+{
+  "id": "spl_transfer_percentage",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "spl_token_ops",
+  "difficulty": "medium",
+  "title": "SPL Percentage Token Transfer",
+  
+  "natural_language_templates": [
+    "Transfer {percentage} of my {token_address} tokens to {to_address}, fund token account if needed",
+    "Send {percentage} percent of {token_address} tokens to address {to_address}, fund token account if needed",
+    "Please transfer {percentage} of my {token_address} token balance to {to_address}, fund token account if needed",
+    "I want to send {percentage} of the {token_address} token I have to {to_address}, fund token account if needed"
+  ],
+  
+  "description": [
+    "Transfer a percentage of SPL token balance from the agent's address to another address.",
+    "",
+    "Technical context:",
+    "- Requires querying the agent's current token balance before calculating transfer amount",
+    "- Formula: transfer_amount = token_balance * (percentage / 100)",
+    "- Use the token contract's balanceOf(address) function to query balance",
+    "- The transfer function signature: transfer(address to, uint256 amount)",
+    "- Recommended gas limit: 65000",
+    "",
+    "Key considerations:",
+    "- Create a Contract instance with the token address and SPL ABI",
+    "- Call balanceOf(agentAddress) to get current token balance",
+    "- Calculate percentage of the balance (in smallest unit)",
+    "- Encode the transfer function call with calculated amount",
+    "- The transaction 'to' field should be the token contract address",
+    "- The transaction 'value' should be 0 (not sending native SOL)"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    },
+    "to_address": {
+      "type": "address",
+      "role": "receiver",
+      "description": "Recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "percentage": {
+      "type": "integer",
+      "unit": "%",
+      "description": "Percentage of token balance to transfer (1-10)",
+      "generation": {
+        "min": 1,
+        "max": 10,
+        "step": 5
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient token balance",
+        "min_balance": "200 tokens"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "description": "Token balance changed correctly",
+        "expected": "{percentage}",
+        "percentage": true,
+        "mint": "{token_address}",
+        "tolerance": 0
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "description": "Token balance changed correctly",
+        "expected": "{percentage}",
+        "percentage": true,
+        "compute": 1,
+        "owner": "{to_address}",
+        "mint": "{token_address}",
+        "tolerance": 0
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["spl", "token", "percentage", "contract_call", "balance_query", "intermediate"],
+    "estimated_gas": 65000,
+    "requires_contract": true,
+    "requires_token_balance": true,
+    "requires_balance_query": true,
+    "contract_requirements": {
+      "standard": "SPL",
+      "required_functions": ["transfer", "balanceOf"]
+    }
+  }
+}

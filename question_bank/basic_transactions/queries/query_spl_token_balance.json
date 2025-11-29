@@ -1,0 +1,79 @@
+{
+  "id": "query_spl_token_balance",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "queries",
+  "difficulty": "easy",
+  "title": "Query SPL Token Balance",
+  
+  "description": [
+    "Query the SPL token balance of a specific address by calling the balanceOf function.",
+    "",
+    "Technical context:",
+    "- Use contract.balanceOf(address) to query token balance",
+    "- The return value is in token's smallest unit (considering decimals)",
+    "- This is a read-only view function, no transaction is required",
+    "- Balance should be returned as uint256",
+    "",
+    "Key considerations:",
+    "- Create contract instance with token address and SPL ABI",
+    "- Call balanceOf(address) view function",
+    "- Return both raw balance (in wei/smallest unit) and human-readable balance",
+    "- Consider token decimals when converting to human-readable format"
+  ],
+  
+  "natural_language_templates": [
+    "Query the balance of token mint {token_address}",
+    "Check the token balance for mint {token_address}",
+    "Get the balance for mint {token_address}",
+    "What is the balance of token mint {token_address}?"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "address_exists",
+        "description": "Query address must be valid"
+      },
+      {
+        "type": "contract_exists",
+        "description": "Token contract must exist"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "query_balance",
+        "weight": 100,
+        "mint": "{token_address}",
+        "description": "Query executed successfully"
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["query", "balance", "spl", "read-only", "basic"],
+    "estimated_gas": 0,
+    "requires_contract": true,
+    "operation_type": "query",
+    "erc_standard": "SPL"
+  }
+}
+

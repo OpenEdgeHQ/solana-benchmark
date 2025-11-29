@@ -1,0 +1,97 @@
+{
+  "id": "composite_batch_query_2_balances",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "batch_query",
+  "difficulty": "easy",
+  "title": "Batch Query Two Token Balances",
+  "natural_language_templates": [
+    "Check your token {token_address_a} balance and {token_address_b} balance",
+    "Query the balance of token {token_address_a} and {token_address_b}",
+    "Get both your {token_address_a} and {token_address_b} token balances"
+  ],
+  "description": [
+    "This is a 2-step query process:",
+    "1. Query token A balance",
+    "2. Query token B balance"
+  ],
+  "composite_structure": {
+    "pattern": "batch-query",
+    "optimal_steps": 2,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "token_address_a"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "token_address_b"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "token_address_a": {
+      "type": "address",
+      "shared_across_steps": [1],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    },
+    "token_address_b": {
+      "type": "address",
+      "shared_across_steps": [2],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 4,
+    "optimal_steps": 2,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "query_result_validation",
+    "key_operation_id": "query_spl_token_balance",
+    "key_operation_step": 2,
+    "validation_type": "query_success"
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "contract_exists",
+        "description": "Token contracts must exist",
+        "addresses": ["{usdt_address}", "{busd_address}"]
+      }
+    ],
+    "post_conditions": [
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "batch",
+      "query",
+      "balance",
+      "read-only",
+      "easy"
+    ],
+    "estimated_gas": 0,
+    "requires_approval": false,
+    "operation_type": "query",
+    "difficulty_notes": [
+      "Pure read-only operations",
+      "No transactions required",
+      "Simple batch query test"
+    ]
+  }
+}
+

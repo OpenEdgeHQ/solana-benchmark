@@ -1,0 +1,41 @@
+{
+  "id": "query_nft_owner",
+  "category": "basic_transactions",
+  "subcategory": "queries",
+  "difficulty": "easy",
+  "title": "Query NFT Owner",
+  "description": "Query the owner of a specific NFT token.",
+  "natural_language_templates": [
+    "Query the owner of NFT token {{nft_address}}",
+    "Check who owns NFT {{nft_address}}",
+    "Get the owner address for NFT {{nft_address}}",
+    "Find out who currently owns NFT {{nft_address}}"
+  ],
+  "blockchain": "bsc",
+  "parameters": {
+    "nft_address": {
+      "type": "address",
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    }
+  },
+  "validation": {
+    "post_conditions": [
+      {
+        "type": "query_balance",
+        "weight": 100,
+        "mint": "{nft_address}"
+      }
+    ]
+  },
+  "metadata": {
+    "tags": ["nft", "owner", "query", "ownerOf"],
+    "estimated_gas": 0,
+    "prerequisites": [],
+    "related_questions": ["query_nft_approval_status", "nft_transfer"],
+    "operation_type": "query"
+  }
+}
+

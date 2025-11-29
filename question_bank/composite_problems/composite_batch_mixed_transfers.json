@@ -1,0 +1,143 @@
+{
+  "id": "composite_batch_mixed_transfers",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "batch_operations",
+  "difficulty": "medium",
+  "title": "Batch Mixed Asset Transfers",
+  "natural_language_templates": [
+    "Send {amount_sol} SOL, {amount_a} {token_address_a}, and {amount_b} {token_address_b} to {to_address}",
+    "Transfer multiple assets to {to_address}: {amount_sol} SOL, {amount_a} {token_address_a}, {amount_b} {token_address_b}",
+    "Pay {to_address} with {amount_sol} SOL, {amount_a} {token_address_a}, and {amount_b} {token_address_b}"
+  ],
+  "description": [
+    "This is a 3-step process:",
+    "1. Transfer SOL",
+    "2. Transfer SPL token A using createTransferInstruction",
+    "3. Transfer SPL token B using createTransferInstruction"
+  ],
+  "composite_structure": {
+    "pattern": "batch-mixed-transfer",
+    "optimal_steps": 3,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "sol_transfer_basic",
+        "parameter_mapping": {
+          "to_address": "to_address",
+          "amount": "amount_sol"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "spl_transfer_fixed",
+        "parameter_mapping": {
+          "token_address": "token_address_a",
+          "to_address": "to_address",
+          "amount": "amount_a"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "spl_transfer_fixed",
+        "parameter_mapping": {
+          "token_address": "token_address_b",
+          "to_address": "to_address",
+          "amount": "amount_b"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "to_address": {
+      "type": "address",
+      "role": "recipient",
+      "description": "Recipient address for all transfers",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount_sol": {
+      "type": "number",
+      "role": "transfer_amount_sol",
+      "description": "Amount of SOL to transfer",
+      "generation": {
+        "method": "random",
+        "min": 0.01,
+        "max": 0.5,
+        "decimals": 2
+      }
+    },
+    "amount_a": {
+      "type": "number",
+      "generation": {
+        "method": "random",
+        "min": 5.0,
+        "max": 20.0,
+        "decimals": 2
+      }
+    },
+    "amount_b": {
+      "type": "number",
+      "generation": {
+        "method": "random",
+        "min": 5.0,
+        "max": 20.0,
+        "decimals": 2
+      }
+    },
+    "token_address_a": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "shared_across_steps": [1, 2, 3],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    },
+    "token_address_b": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "shared_across_steps": [1, 2, 3],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 6,
+    "optimal_steps": 3,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "erc20_transfer_fixed",
+    "key_operation_step": 3
+  },
+  "validation": {
+    "post_conditions": [
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "batch",
+      "mixed",
+      "payment",
+      "sol",
+      "multi-asset",
+      "medium"
+    ],
+    "requires_approval": false,
+    "difficulty_notes": [
+      "Mixed asset type transfers",
+      "Single recipient, multiple asset types",
+      "No approvals needed",
+      "Sequential execution required"
+    ]
+  }
+}
+

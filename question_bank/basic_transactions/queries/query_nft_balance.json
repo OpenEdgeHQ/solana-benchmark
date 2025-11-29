@@ -1,0 +1,52 @@
+{
+  "id": "query_nft_balance",
+  "category": "basic_transactions",
+  "subcategory": "queries",
+  "difficulty": "easy",
+  "title": "Query NFT balance",
+  "description": "Query the balance for a specific NFT",
+  "natural_language_templates": [
+    "Query the balance of NFT {nft_address}",
+    "Check the token balance for NFT {token_address}",
+    "Get the balance for NFT {token_address}",
+    "What is the balance of NFT {token_address}?"
+  ],
+  "blockchain": "Solana",
+  "parameters": {
+    "nft_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "NFT contract address",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    }
+  },
+
+  "validation": {
+    "post_conditions": [
+      {
+        "type": "query_balance",
+        "weight": 100,
+        "mint": "{nft_address}",
+        "description": "Query executed successfully"
+      }
+    ]
+  },
+  "metadata": {
+    "operation_type": "query",
+    "estimated_gas": 24000,
+    "requires_native_token": false,
+    "requires_contract": true,
+    "contract_type": "nft",
+    "tags": ["query", "nft", "approval", "read-only"],
+    "learning_objectives": [
+      "Query NFT approval status using getApproved()",
+      "Understand NFT approval mechanism",
+      "Handle address return types"
+    ]
+  }
+}
+

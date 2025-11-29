@@ -3,10 +3,10 @@ import path from 'path';
 type SkillExecutionResult = string;
 
 async function runSkill(): Promise<void> {
-    const [, , filePath, timeoutMsStr, agentPubkey, latestBlockhash] = process.argv;
+    const [, , filePath, timeoutMsStr, agentSecret] = process.argv;
 
     if (!filePath || !timeoutMsStr) {
-        console.error('Usage: bun runSkill.ts <file> <timeoutMs> [agentPubkey] [latestBlockhash]');
+        console.error('Usage: bun runSkill.ts <file> <timeoutMs> [agentSecret]');
         process.exit(1);
     }
 
@@ -21,15 +21,15 @@ async function runSkill(): Promise<void> {
             throw new Error('executeSkill function not found in the provided module.');
         }
 
-        const serialized_tx: SkillExecutionResult = await Promise.race([
-            skillModule.executeSkill(latestBlockhash),
+        const exec_result: SkillExecutionResult = await Promise.race([
+            skillModule.executeSkill(agentSecret),
             new Promise<SkillExecutionResult>((_, reject) =>
                 setTimeout(() => reject(new Error('Skill execution timed out.')), timeoutMs)
             ),
         ]);
 
         console.log(JSON.stringify({
-            serialized_tx,
+            exec_result,
         }));
     } catch (error: any) {
         // First, let Bun print the actual error with its formatting to stderr

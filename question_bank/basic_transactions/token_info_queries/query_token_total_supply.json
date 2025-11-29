@@ -1,0 +1,46 @@
+{
+  "id": "query_token_total_supply",
+  "category": "basic_transactions",
+  "subcategory": "queries",
+  "difficulty": "easy",
+  "title": "Query Token Total Supply",
+  "description": "Query the total supply of an SPL token.",
+  "natural_language_templates": [
+    "Query the total supply of token at {token_address}",
+    "Get the total supply for the SPL token at {token_address}",
+    "Check how many tokens exist in total for {token_address}",
+    "Retrieve the totalSupply of token {token_address}"
+  ],
+  "blockchain": "bsc",
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    }
+  },
+  "validation": {
+    "post_conditions": [
+      {
+        "type": "query_balance",
+        "weight": 100,
+        "mint": "{token_address}"
+      }
+    ]
+  },
+  "metadata": {
+    "tags": ["erc20", "token", "totalSupply", "query", "supply"],
+    "estimated_gas": 0,
+    "prerequisites": [],
+    "learning_objectives": [
+      "Understand the SPL totalSupply() function",
+      "Learn to query token supply information",
+      "Understand the difference between totalSupply and circulating supply",
+      "Learn proper formatting of large numbers"
+    ],
+    "operation_type": "query"
+  }
+}
+

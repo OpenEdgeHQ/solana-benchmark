@@ -1,0 +1,93 @@
+{
+  "id": "composite_approve_transferfrom",
+  "category": "composite_problems",
+  "difficulty": "medium",
+  "title": "Approve and Execute TransferFrom",
+  "description": [
+    "A composite problem that tests the LLM's ability to:",
+    "1. Execute an SPL approval (approve spender to spend tokens)",
+    "2. Execute a transferFrom operation using the approval",
+    "This demonstrates the SPL approval pattern where authorization is granted first, then used."
+  ],
+  "natural_language_templates": [
+    "Approve {spender_address} to spend {amount} {token_address}, then transfer {amount} {token_address} from your account to {to_address}",
+    "First approve the spender, then execute transferFrom to move {amount} {token_address} tokens"
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "composite_structure": {
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "s p l_approve",
+        "description": "Approve spender to spend tokens"
+      },
+      {
+        "step": 2,
+        "atomic_id": "spl_transferfrom_basic",
+        "description": "Execute transferFrom using the approval"
+      }
+    ]
+  },
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    },
+    "spender_address": {
+      "type": "address",
+      "role": "spender",
+      "description": "Address to approve (will be agent_address in this test scenario)",
+      "shared_across_steps": [1],
+      "generation": {
+        "method": "from_env",
+        "env_key": "test_address",
+        "comment": "Agent approves themselves to demonstrate the pattern"
+      }
+    },
+    "to_address": {
+      "type": "address",
+      "role": "recipient",
+      "description": "Recipient address for token transfer",
+      "shared_across_steps": [2],
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "unit": "tokens",
+      "role": "transfer_amount",
+      "description": "Amount to approve and transfer",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "random",
+        "min": 10.0,
+        "max": 50.0,
+        "decimals": 2
+      }
+    }
+  },
+  "interaction_config": {
+    "optimal_steps": 2,
+    "max_rounds_multiplier": 2,
+    "comment": "max_rounds = optimal_steps * max_rounds_multiplier = 2 * 2 = 4"
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "description": "Directly reuse the atomic validator of the key operation - NO code duplication!",
+    "key_operation_step": 2,
+    "key_operation_id": "spl_transferfrom_basic",
+    "key_operation_alias": "transferfrom_execution",
+    "validator_class": "SPLTransferFromBasicValidator",
+    "note": "The validator will load SPLTransferFromBasicValidator and call its validate() method directly"
+  },
+  "tags": ["approve-execute", "token"]
+}

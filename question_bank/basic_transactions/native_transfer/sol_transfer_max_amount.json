@@ -1,0 +1,98 @@
+{
+  "id": "sol_transfer_max_amount",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "native_transfer",
+  "difficulty": "medium",
+  "title": "SOL Transfer Maximum Amount",
+  
+  "natural_language_templates": [
+    "Transfer all my SOL to {to_address}",
+    "Send my entire SOL balance to {to_address}",
+    "Transfer the maximum amount of SOL to {to_address}",
+    "Send all available SOL to {to_address}",
+    "I want to transfer all my SOL to {to_address}"
+  ],
+  
+  "description": [
+    "Transfer the maximum possible amount of SOL to an address, which is the current balance minus the gas cost for the transaction.",
+    "",
+    "Technical context:",
+    "- You need to query the current balance using provider.getBalance(agentAddress)",
+    "- Calculate the gas cost: gasLimit × gasPrice (or maxFeePerGas for EIP-1559)",
+    "- The maximum transferable amount = balance - gas cost",
+    "- This is a common pattern when users want to \"empty\" an address",
+    "- Estimated gas for simple transfer: 21000",
+    "",
+    "Key considerations:",
+    "- Must query balance first to get current amount",
+    "- Must calculate gas cost accurately to avoid insufficient balance error",
+    "- For EIP-1559 transactions: gas cost = gasLimit × maxFeePerGas",
+    "- Leave enough for gas, otherwise the transaction will fail",
+    "- The actual transferred amount should be very close to the initial balance minus gas"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "to_address": {
+      "type": "address",
+      "role": "recipient",
+      "description": "Recipient address",
+      "generation": {
+        "method": "random"
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "balance",
+        "description": "Agent must have sufficient SOL balance",
+        "min_balance": "0.01 SOL"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "address_check",
+        "weight": 20,
+        "description": "Correct recipient address",
+        "expected": "{to_address}"
+      },
+      {
+        "type": "value_check",
+        "weight": 30,
+        "description": "Transferred maximum amount (balance - gas)",
+        "tolerance": 0.0001,
+        "expected": "1",
+        "percentage": true
+      },
+      {
+        "type": "balance_change",
+        "weight": 20,
+        "expected": "1",
+        "percentage": true,
+        "description": "Sender balance should be close to 0 (only dust remaining)",
+        "tolerance": 0.0001
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["sol", "native", "transfer", "max", "balance", "query", "intermediate"],
+    "estimated_gas": 21000,
+    "requires_balance_query": true,
+    "requires_gas_calculation": true
+  }
+}
+

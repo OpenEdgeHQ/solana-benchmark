@@ -1,0 +1,95 @@
+{
+  "id": "sol_transfer_percentage",
+  "category": "basic_transactions",
+  "subcategory": "native_transfer",
+  "difficulty": 2,
+  "title": "Percentage SOL Transfer",
+  "description": ["Transfer a percentage of SOL balance from sender's address to another address"],
+  
+  "natural_language_templates": [
+    "Transfer {percentage} of my SOL balance to {to_address}",
+    "Send {percentage} percent of SOL to {to_address}",
+    "Please transfer {percentage} of the SOL I have to {to_address}",
+    "I want to send {percentage} of my SOL to address {to_address}"
+  ],
+  
+  "parameters": {
+    "to_address": {
+      "type": "address",
+      "role": "receiver",
+      "description": "Recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "percentage": {
+      "type": "integer",
+      "unit": "%",
+      "description": "Percentage of balance to transfer (1-100)",
+      "generation": {
+        "min": 1,
+        "max": 10
+      }
+    }
+  },
+  
+  "preconditions": [
+    {
+      "type": "balance_check",
+      "address": "sender",
+      "min_balance": 0.01,
+      "description": "Sender must have at least 0.01 SOL"
+    }
+  ],
+  
+  "validation": {
+    "pre_conditions": [],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction must execute successfully"
+      },
+      {
+        "type": "address_check",
+        "field": "to",
+        "expected": "{to_address}",
+        "weight": 30,
+        "description": "Target address must be correct"
+      },
+      {
+        "type": "value_check",
+        "field": "value",
+        "expected": "{percentage}",
+        "base": "sender_balance_before",
+        "tolerance": 0,
+        "weight": 30,
+        "percentage": true,
+        "description": "Transfer amount must be correct percentage of balance"
+      },
+      {
+        "type": "balance_change",
+        "address": "sender",
+        "expected": "{percentage}",
+        "tolerance": 0.0001,
+        "weight": 10,
+        "percentage": true,
+        "description": "Balance change must match the percentage"
+      }
+    ]
+  },
+  
+  "composability": {
+    "can_repeat": true,
+    "parallel_safe": false,
+    "state_dependencies": ["balance"],
+    "requires_query": true,
+    "mutually_exclusive_with": [],
+    "natural_combination_with": ["balance_query", "transfer_percentage"]
+  },
+  
+  "version": "1.0.0",
+  "created_at": "2025-11-12",
+  "updated_at": "2025-11-12"
+}
+

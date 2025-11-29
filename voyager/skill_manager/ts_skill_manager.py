@@ -39,10 +39,10 @@ class TypeScriptSkillManager:
     # ================================
     # Code Loop
 
-    def run_code_loop_code(self, code: str, agent_pubkey: str, latest_blockhash: str, code_file: str = "voyager/skill_runner/code_loop_code.ts", timeout: int = 30000):
+    def run_code_loop_code(self, code: str, agent_secret: str, code_file: str = "voyager/skill_runner/code_loop_code.ts", timeout: int = 30000):
         with open(code_file, "w") as f:
             f.write(code)
-        command = ["bun", "voyager/skill_runner/runSkill.ts", code_file, str(timeout), agent_pubkey, latest_blockhash]
+        command = ["bun", "voyager/skill_runner/runSkill.ts", code_file, str(timeout), agent_secret]
         try:
             result = subprocess.run(
                 command,

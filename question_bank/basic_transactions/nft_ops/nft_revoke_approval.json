@@ -1,0 +1,115 @@
+{
+  "id": "nft_revoke_approval",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "spl_token_ops",
+  "difficulty": "medium",
+  "title": "NFT Revoke Approval (Set Allowance to Zero)",
+  
+  "natural_language_templates": [
+    "Revoke approval for spender address {spender_address} to spend my NFT {nft_address}",
+    "Cancel the authorization for address {spender_address} to use my NFT (mint: {nft_address})",
+    "Remove the spending permission for {spender_address} on NFT {nft_address}",
+    "I want to revoke address {spender_address}'s access to my (NFT address: {nft_address})"
+  ],
+  
+  "description": [
+    "Revoke (cancel) a previously granted SPL token approval by setting the allowance to zero.",
+    "",
+    "Technical context:",
+    "- This is a security best practice to prevent unauthorized token transfers",
+    "- Revoking approval is done by calling approve(spender, 0)",
+    "- Function signature: approve(address,uint256)",
+    "- The amount should be 0 to revoke",
+    "- Recommended gas limit: 60000",
+    "",
+    "Key considerations:",
+    "- Create a Contract instance with token address and SPL ABI",
+    "- Use contract.interface.encodeFunctionData('approve', [spenderAddress, 0]) for the data field",
+    "- Set transaction 'to' to the token contract address",
+    "- Set transaction 'value' to 0 (not sending SOL)",
+    "- After revoking, the allowance should be 0",
+    "- Some tokens require setting allowance to 0 before changing to a new non-zero value (USDT issue)"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "nft_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    },
+    "spender_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "Address to revoke approval from (typically a DeFi contract)",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+          "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"
+        ],
+        "comment": "PancakeSwap Router, Venus Protocol, PancakeSwap V3 Router"
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "contract_exists",
+        "description": "Token contract must exist",
+        "address": "{nft_address}"
+      },
+      {
+        "type": "allowance_granted",
+        "description": "There should be an existing approval to revoke",
+        "token": "{nft_address}",
+        "spender": "{spender_address}",
+        "note": "We will set an initial allowance before testing revoke"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "instruction_check",
+        "weight": 50,
+        "expected": "revoke",
+        "description": "Correct instruction called"
+      },
+      {
+        "type": "balance_change",
+        "weight": 20,
+        "description": "Token balance changed correctly",
+        "expected": "0",
+        "mint": "{nft_address}",
+        "tolerance": 0
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["nft", "approve", "revoke", "security", "allowance", "intermediate"],
+    "estimated_gas": 60000,
+    "requires_contract": true,
+    "requires_token_balance": false,
+    "contract_requirements": {
+      "contract_type": "NFT",
+      "required_functions": ["approve", "allowance"],
+      "note": "Revoking approval is a security best practice"
+    }
+  }
+}

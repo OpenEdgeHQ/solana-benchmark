@@ -1,0 +1,111 @@
+{
+  "id": "sol_transfer_with_message",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "native_transfer",
+  "difficulty": "easy",
+  "title": "SOL Transfer with Message",
+  
+  "description": [
+    "Transfer SOL with an attached text message encoded in the transaction data field.",
+    "",
+    "Technical context:",
+    "- Message should be encoded in the 'data' field of the transaction",
+    "- Use ethers.toUtf8Bytes() to convert string to bytes, then ethers.hexlify() to hex",
+    "- Transactions with data field consume slightly more gas than empty data",
+    "- Recommended gas limit: 25000 (vs 21000 for transfers without data)"
+  ],
+  
+  "natural_language_templates": [
+    "Transfer {amount} SOL to {to_address} with message '{message}'",
+    "Send {amount} SOL to {to_address} and include the message: {message}",
+    "Please send {amount} SOL to address {to_address} with the note '{message}'",
+    "I want to transfer {amount} SOL to {to_address} and attach message: {message}"
+  ],
+  
+  "blockchain": {
+    "chain": "BSC",
+    "network": "testnet"
+  },
+  
+  "parameters": {
+    "to_address": {
+      "type": "address",
+      "role": "receiver",
+      "description": "Recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "unit": "SOL",
+      "description": "Transfer amount in SOL",
+      "generation": {
+        "min": 0.001,
+        "max": 0.1,
+        "decimals": 3
+      }
+    },
+    "message": {
+      "type": "string",
+      "description": "Text message to attach to the transaction",
+      "generation": {
+        "method": "random",
+        "length": 20,
+        "charset": "alphanumeric_space"
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "balance",
+        "description": "Agent must have sufficient SOL balance",
+        "min_balance": "0.2 SOL"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 20,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "value_check",
+        "weight": 20,
+        "description": "Correct amount of SOL transferred",
+        "expected": "{amount}",
+        "tolerance": 0
+      },
+      {
+        "type": "address_check",
+        "weight": 20,
+        "description": "SOL sent to correct recipient",
+        "expected": "{to_address}"
+      },
+      {
+        "type": "message_check",
+        "weight": 30,
+        "description": "Transaction data contains the message",
+        "expected": "{message}"
+      },
+      {
+        "type": "balance_change",
+        "weight": 10,
+        "description": "Sender balance decreased correctly",
+        "expected": "{amount}",
+        "tolerance": 0.0001
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["native_transfer", "sol", "message", "data_field", "basic"],
+    "estimated_gas": 25000,
+    "requires_contract": false
+  }
+}
+

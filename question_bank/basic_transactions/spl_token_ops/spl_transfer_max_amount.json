@@ -1,0 +1,118 @@
+{
+  "id": "spl_transfer_max_amount",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "spl_token_ops",
+  "difficulty": "medium",
+  "title": "SPL Transfer Maximum Amount",
+  
+  "natural_language_templates": [
+    "Transfer all my token {token_address} to address {to_address}, fund token account if needed",
+    "Send my entire balance (token: {token_address}) to {to_address}, fund token account if needed",
+    "Transfer the maximum amount of token {token_address} to {to_address}, fund token account if needed",
+    "I want to transfer all available token {token_address} to {to_address}, fund token account if needed"
+  ],
+  
+  "description": [
+    "Transfer the entire balance of an SPL token to another address.",
+    "",
+    "Technical context:",
+    "- Query current token balance using balanceOf(address owner)",
+    "- Transfer all tokens using transfer(address to, uint256 amount)",
+    "- Unlike native SOL transfers, no need to reserve for gas (gas is paid in SOL)",
+    "- Function signature: transfer(address,uint256)",
+    "- Recommended gas limit: 65000",
+    "",
+    "Key considerations:",
+    "- Create a Contract instance with token address and SPL ABI",
+    "- Query the token balance: await contract.balanceOf(agentAddress)",
+    "- Use contract.interface.encodeFunctionData('transfer', [to, balance]) for the data field",
+    "- Set transaction 'to' to the token contract address",
+    "- Set transaction 'value' to 0 (not sending SOL)",
+    "- After transfer, the sender's token balance should be 0 or very close to 0",
+    "- The recipient's token balance should increase by the transfer amount"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    },
+    "to_address": {
+      "type": "address",
+      "role": "recipient",
+      "description": "Recipient address",
+      "generation": {
+        "method": "random"
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have some token balance",
+        "token": "{token_address}",
+        "min_balance": "1 tokens"
+      },
+      {
+        "type": "contract_exists",
+        "description": "Token contract must exist",
+        "address": "{token_address}"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "description": "Token balance changed correctly",
+        "expected": "1",
+        "percentage": true,
+        "mint": "{token_address}",
+        "tolerance": 0
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "description": "Token balance changed correctly",
+        "expected": "1",
+        "percentage": true,
+        "compute": 1,
+        "owner": "{to_address}",
+        "mint": "{token_address}",
+        "tolerance": 0
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["spl", "transfer", "max", "balance", "query", "intermediate"],
+    "estimated_gas": 65000,
+    "requires_contract": true,
+    "requires_token_balance": true,
+    "requires_balance_query": true,
+    "contract_requirements": {
+      "contract_type": "SPL",
+      "required_functions": ["transfer", "balanceOf"],
+      "note": "Agent must have tokens to transfer"
+    }
+  }
+}

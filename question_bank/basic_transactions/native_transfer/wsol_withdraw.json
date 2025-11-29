@@ -1,0 +1,93 @@
+{
+  "id": "wsol_withdraw",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "balance",
+  "difficulty": "medium",
+  "title": "WSOL Withdraw (Unwrap WSOL)",
+  
+  "natural_language_templates": [
+    "Withdraw WSOL to get SOL",
+    "Unwrap WSOL back to SOL",
+    "Convert WSOL to native SOL",
+    "I want to withdraw WSOL to receive SOL"
+  ],
+  
+  "description": [
+    "Withdraw WSOL tokens from the WSOL contract to receive an equivalent amount of native SOL.",
+    "",
+    "Technical context:",
+    "- The withdraw(uint256) function burns WSOL tokens and sends native SOL back",
+    "- Function signature: withdraw(uint256 wad)",
+    "- The amount must be in wei (smallest unit)",
+    "- You must have sufficient WSOL balance before withdrawal",
+    "- Recommended gas limit: 60000",
+    "",
+    "Key considerations:",
+    "- Create a Contract instance with WSOL address and ABI",
+    "- Use contract.interface.encodeFunctionData('withdraw', [amount]) for the data field",
+    "- Set transaction 'to' to the WSOL contract address",
+    "- Set transaction 'value' to 0 (not sending SOL, just calling contract)",
+    "- After withdrawal, your WSOL token balance decreases",
+    "- Your native SOL balance increases by the withdrawal amount (minus gas)"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "wsol_balance",
+        "description": "Agent must have sufficient WSOL balance",
+        "min_balance": "200 WSOL"
+      },
+      {
+        "type": "contract_exists",
+        "description": "WSOL contract must exist",
+        "address": "{wsol_address}"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "description": "WSOL token balance decreased by withdrawal amount",
+        "mint": "So11111111111111111111111111111111111111112",
+        "expected": "0"
+      },
+      {
+        "type": "wsol_withdraw_increase",
+        "weight": 35,
+        "description": "Native SOL balance increased by withdrawal amount (minus gas)",
+        "mint": "So11111111111111111111111111111111111111112",
+        "tolerance": 0.003,
+        "expected": "0"
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["wsol", "unwrap", "withdraw", "native_token", "contract_call", "intermediate"],
+    "estimated_gas": 60000,
+    "requires_contract": true,
+    "requires_token_balance": true,
+    "contract_requirements": {
+      "contract_type": "WSOL",
+      "required_functions": ["withdraw", "balanceOf"],
+      "note": "Must have WSOL tokens to withdraw"
+    }
+  }
+}
+

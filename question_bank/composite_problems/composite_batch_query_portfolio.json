@@ -1,0 +1,110 @@
+{
+  "id": "composite_batch_query_portfolio",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "query_workflows",
+  "difficulty": "easy",
+  "title": "Batch Query Portfolio Balances",
+  "natural_language_templates": [
+    "Check your portfolio: token {token_address_a} balance, token {token_address_b} balance, and token {token_address_c} balance",
+    "Query all your token balances: {token_address_a}, {token_address_b}, and {token_address_c}",
+    "Get my portfolio summary: how much token {token_address_a}, {token_address_b}, and {token_address_c} do I have?"
+  ],
+  "description": [
+    "This is a 3-step query process:",
+    "1. Query TOKEN A balance",
+    "2. Query TOKEN B balance",
+    "3. Query TOKEN C balance"
+  ],
+  "composite_structure": {
+    "pattern": "batch-query",
+    "optimal_steps": 3,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "token_address_a"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "token_address_b"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "token_address_c"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "token_address_a": {
+      "type": "address",
+      "shared_across_steps": [1],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    },
+    "token_address_b": {
+      "type": "address",
+      "shared_across_steps": [2],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    },
+    "token_address_c": {
+      "type": "address",
+      "shared_across_steps": [3],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 6,
+    "optimal_steps": 3,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "custom_scoring",
+    "description": "Custom scoring for query operations based on returned data"
+  },
+  "validation": {
+    "pre_conditions": [],
+    "post_conditions": [
+      {
+        "type": "query_success",
+        "weight": 1.0,
+        "description": "All queries executed successfully"
+      }
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "batch",
+      "query",
+      "portfolio",
+      "read-only",
+      "balance",
+      "easy"
+    ],
+    "estimated_gas": 0,
+    "requires_approval": false,
+    "difficulty_notes": [
+      "Pure query operation",
+      "No transactions needed",
+      "Simple balance checks"
+    ]
+  }
+}
+

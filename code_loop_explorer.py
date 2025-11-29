@@ -6,7 +6,9 @@ import re
 import json
 import uuid
 from datetime import datetime
-from typing import List
+from typing import Dict, Any, Optional, List
+from pathlib import Path
+import random
 
 from langchain_openai import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
@@ -15,6 +17,7 @@ from dotenv import load_dotenv
 
 from voyager.skill_manager.ts_skill_manager import TypeScriptSkillManager
 from voyager.surfpool_env import SurfpoolEnv, _surfpool_validator
+from voyager.utils.question import QuestController
 
 load_dotenv()
 
@@ -43,11 +46,18 @@ class CodeLoopExplorer:
         self.verbose = verbose
         self.code_file = code_file or "voyager/skill_runner/code_loop_code.ts"
         self.environment_config_path = environment_config
+        self.debug_mode = os.getenv("DEBUG") == "true"
         
         # Load environment configuration if provided
         self.env_config = None
         if environment_config:
             self.load_environment_config(environment_config)
+            question_path = self.env_config.get("question_path")
+            self.question_controller = QuestController(question_path)
+            if len(self.question_controller.question_paths) == 0:
+                raise RuntimeError(f"No questions found in {question_path}")
+        else:
+            raise RuntimeError(f"No enviroment config found")
         
         # Generate unique run ID
         self.run_id = f"code_loop_{datetime.now().strftime('%y-%m-%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
@@ -100,7 +110,7 @@ class CodeLoopExplorer:
         except Exception as e:
             logging.error(f"Failed to load environment config: {e}")
             self.env_config = None
-        
+
     def extract_code_blocks(self, message_content: str) -> List[str]:
         """
         Extract TypeScript/JavaScript code blocks from the message content.
@@ -158,44 +168,55 @@ class CodeLoopExplorer:
         # This allows the error handling to provide feedback
         return code_blocks[0].strip()
     
-    async def get_system_prompt(self, env: SurfpoolEnv) -> str:
-        """Build the system prompt for the agent."""
-        observation = await env._get_observation()
-        obs_dict = observation[0][1] if observation else {}
+    def _generate_system_prompt(self, env: SurfpoolEnv):
+        """
+        Build the system prompt for the agent.
+        """
+        # observation = await env._get_observation()
+        # obs_dict = observation[0][1] if observation else {}
         agent_pubkey = str(env.agent_keypair.pubkey())
+
+        # Natural language prompt with random values
+        if self.debug_mode:
+            question = self.question_controller._load_question(os.getenv("QUESTION_NAME"), env)
+        else:
+            question = self.question_controller._load_question(None, env)
+        natural_language_prompt = self.question_controller._generate_natural_language_prompt(question, env)
+        if self.debug_mode:
+            natural_language_prompt += f"\n{question.get("description", "")}"
         
         # Use custom prompt if environment config is loaded
         if self.env_config and 'system_prompt_template' in self.env_config:
             with open(self.env_config['system_prompt_template'], 'r') as f:
                 system_prompt = f.read().format(
                     agent_pubkey=agent_pubkey,
-                    sol_balance=obs_dict.get('sol_balance', 0),
-                    block_height=obs_dict.get('block_height', 0),
-                    total_reward=env.total_reward,
-                    max_messages=self.max_messages
+                    task_info=natural_language_prompt
                 )
-                return system_prompt
-    
-        return system_prompt
+                return (system_prompt, question, natural_language_prompt)
+            
+        raise RuntimeError("No system_prompt_template found in env_config")
     
     async def run_exploration_loop(self, env: SurfpoolEnv):
         """Main exploration loop that extracts and executes code from agent responses."""
         
-        # Initialize conversation with LangChain messages
-        system_prompt = await self.get_system_prompt(env)
-        self.messages = [
-            SystemMessage(content=system_prompt)
-        ]
-        
-        # Add initial user prompt
-        initial_prompt = """
-Begin exploring the Solana blockchain. Try to discover new programs and instructions.
+        while self.message_count < self.max_messages:
+            # Initialize conversation with LangChain messages
+            (system_prompt, question, natural_language_prompt) = self._generate_system_prompt(env)
+            self.messages = [
+                SystemMessage(content=system_prompt)
+            ]
+
+            # Set sol balance before running code
+            env_obs = await env._get_observation()
+            
+            # Add initial user prompt
+            initial_prompt = """
+Begin exploring the Solana blockchain. Try to build correct instructions.
 Write TypeScript code to create and execute transactions that will earn rewards.
 Remember to use ```typescript code blocks for your transaction code.
 """
-        self.messages.append(HumanMessage(content=initial_prompt))
-        
-        while self.message_count < self.max_messages:
+            self.messages.append(HumanMessage(content=initial_prompt))
+
             self.message_count += 1
             message_start_time = datetime.now()
             
@@ -238,19 +259,19 @@ Remember to use ```typescript code blocks for your transaction code.
                     logging.info(f"🚀 Executing TypeScript code...")
                     result = self.skill_manager.run_code_loop_code(
                         skill_code,
-                        str(env.agent_keypair.pubkey()),
-                        blockhash,
+                        env.agent_keypair_bs58,
                         self.code_file,
                         self.env_config.get("timeout", 30000)
                     )
-                    logging.info(f"📦 Execution result: success={result.get('success', False)}, has_tx={bool(result.get('serialized_tx'))}")
+                    logging.info(f"📦 Execution result: success={result.get('success', False)}, has_tx={bool(result.get('exec_result'))}")
+                    logging.info(result.get("exec_result"))
 
                     execution_feedback = ""
                     reward = 0
                     instructions_discovered = {}
 
-                    tx_data = result.get("serialized_tx")
-                    if not tx_data:
+                    exec_result = result.get("exec_result")
+                    if not exec_result:
                         execution_feedback = json.dumps({
                             "error": "Skill execution failed",
                             "details": result,
@@ -263,13 +284,18 @@ Remember to use ```typescript code blocks for your transaction code.
                         })
                     else:
                         try:
-                            # Decode and sign the transaction
-                            tx_bytes = base64.b64decode(tx_data)
-                            tx = Transaction.from_bytes(tx_bytes)
-                            signed_tx = env._partial_sign_transaction(bytes(tx), [env.agent_keypair])
+                            tx_data = json.loads(exec_result)
+                            logging.info(tx_data)
+                            # if (question.get("subcategory")) == "queries":
+                            #     signed_tx = tx_data[0]
+                            # else:
+                            #     # Decode and sign the transaction
+                            #     tx_bytes = base64.b64decode(tx_data[0])
+                            #     tx = Transaction.from_bytes(tx_bytes)
+                            #     signed_tx = env._partial_sign_transaction(bytes(tx), [env.agent_keypair])
                             
                             # Execute the transaction
-                            obs, step_reward, _, _, info = await env.step(signed_tx)
+                            obs, step_reward, _, _, info = await env.step(tx_data, question)
                             
                             # Log success
                             if step_reward > 0:
@@ -319,6 +345,7 @@ Remember to use ```typescript code blocks for your transaction code.
                             logging.error(f"Transaction execution error: {tx_error}")
                             execution_feedback = f"❌ Transaction execution failed: {str(tx_error)}"
                             reward = 0
+                            raise tx_error
                     
                     # Add execution feedback to conversation
                     self.messages.append(HumanMessage(content=execution_feedback))
@@ -348,7 +375,8 @@ Remember to use ```typescript code blocks for your transaction code.
                     'duration': (datetime.now() - message_start_time).total_seconds(),
                     'reward': reward if 'reward' in locals() else 0,
                     'total_reward': env.total_reward,
-                    'instructions_discovered': instructions_discovered
+                    'instructions_discovered': instructions_discovered,
+                    'promt': natural_language_prompt,
                 }
                 
                 self.metrics['messages'].append(message_metrics)
@@ -402,8 +430,11 @@ Remember to use ```typescript code blocks for your transaction code.
         
         # Save conversation history
         conv_path = f"metrics/{self.run_id}_conversation.json"
-        with open(conv_path, 'w') as f:
+        with open(conv_path, 'a') as f:
             json.dump(conversation_dict, f, indent=2)
+            f.write("\n")
+            f.flush()  # Force flush to disk
+            os.fsync(f.fileno())  # Ensure it's written to disk
         
         logging.info(f"Checkpoint saved: {metrics_path}")
 

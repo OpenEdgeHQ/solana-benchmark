@@ -1,0 +1,174 @@
+{
+  "id": "composite_batch_transfer_3_tokens",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "batch_operations",
+  "difficulty": "medium",
+  "title": "Batch Transfer Tokens to 3 Addresses",
+  "natural_language_templates": [
+    "Transfer token {token_address}: {amount1} to {address1}, {amount2} to {address2}, and {amount3} to {address3}",
+    "Distribute token {token_address}: send {amount1} to {address1}, {amount2} to {address2}, {amount3} to {address3}",
+    "Send token {token_address} to three addresses: {amount1} to {address1}, {amount2} to {address2}, {amount3} to {address3}"
+  ],
+  "description": [
+    "This is a 3-step process:",
+    "1. Transfer token to address1 using createTransferInstruction",
+    "2. Transfer token to address2 using createTransferInstruction",
+    "3. Transfer token to address3 using createTransferInstruction",
+    "Create 3 transactions"
+  ],
+  "composite_structure": {
+    "pattern": "batch-transfer",
+    "optimal_steps": 3,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "spl_transfer_fixed",
+        "parameter_mapping": {
+            "token_address": "token_address",
+            "to_address": "address1",
+            "amount": "amount1"
+          }
+      },
+      {
+        "step": 2,
+        "atomic_id": "spl_transfer_fixed",
+        "parameter_mapping": {
+            "token_address": "token_address",
+            "to_address": "address2",
+            "amount": "amount2"
+          }
+      },
+      {
+        "step": 3,
+        "atomic_id": "spl_transfer_fixed",
+        "parameter_mapping": {
+            "token_address": "token_address",
+            "to_address": "address3",
+            "amount": "amount3"
+          }
+      }
+    ]
+  },
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "token",
+      "description": "ERC20 token contract address (USDT)",
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    },
+    "address1": {
+      "type": "address",
+      "role": "recipient_1",
+      "description": "First recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "address2": {
+      "type": "address",
+      "role": "recipient_2",
+      "description": "Second recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "address3": {
+      "type": "address",
+      "role": "recipient_3",
+      "description": "Third recipient address",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount1": {
+      "type": "number",
+      "unit": "token",
+      "role": "transfer_amount_1",
+      "description": "Amount to transfer to address 1",
+      "generation": {
+        "method": "random",
+        "min": 1.0,
+        "max": 10.0,
+        "decimals": 2
+      }
+    },
+    "amount2": {
+      "type": "number",
+      "unit": "token",
+      "role": "transfer_amount_2",
+      "description": "Amount to transfer to address 2",
+      "generation": {
+        "method": "random",
+        "min": 1.0,
+        "max": 10.0,
+        "decimals": 2
+      }
+    },
+    "amount3": {
+      "type": "number",
+      "unit": "token",
+      "role": "transfer_amount_3",
+      "description": "Amount to transfer to address 3",
+      "generation": {
+        "method": "random",
+        "min": 1.0,
+        "max": 10.0,
+        "decimals": 2
+      }
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 6,
+    "optimal_steps": 3,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "spl_transfer_fixed",
+    "key_operation_step": 3
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient token balance for all transfers",
+        "min_balance": "100 tokens"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 0.3,
+        "description": "All transfers executed successfully"
+      },
+      {
+        "type": "recipient_balance_increase",
+        "weight": 0.7,
+        "description": "All recipients received correct token amounts"
+      }
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "batch",
+      "token",
+      "distribution",
+      "transfer",
+      "medium"
+    ],
+    "estimated_gas": 150000,
+    "requires_approval": false,
+    "difficulty_notes": [
+      "Batch token transfer operation",
+      "No approvals needed (direct transfer)",
+      "Sequential execution required",
+      "Must track token balance across transfers"
+    ]
+  }
+}
+

@@ -1,0 +1,126 @@
+{
+  "id": "swap_exact_sol_for_tokens",
+  "version": "2.0.0",
+  "category": "defi_operations",
+  "subcategory": "balance",
+  "difficulty": "easy",
+  "title": "Jupiter Swap - SOL to Token",
+  "natural_language_templates": [
+    "Swap {amount} SOL for {token_address} tokens on Jupiter",
+    "Exchange {amount} SOL to {token_address} using Jupiter Router",
+    "Convert {amount} SOL to {token_address} tokens through Jupiter V2",
+    "Trade {amount} SOL for {token_address} on Jupiter with {slippage}% slippage tolerance"
+  ],
+  "description": [
+    "Swap SOL for ERC20 tokens using Jupiter V2 Router's swapExactETHForTokens function.",
+    "",
+    "Key considerations:",
+    "- amountOutMin: Minimum amount of tokens to receive (slippage protection)",
+    "- path: Array of token addresses for the swap route [WSOL, TOKEN]",
+    "- to: Recipient address (usually the sender/agent address)",
+    "- deadline: Unix timestamp after which the transaction will revert",
+    "- Must set transaction 'value' field to the SOL amount being swapped",
+    "- WSOL address on Solana: 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    "",
+    "Slippage protection:",
+    "- Calculate amountOutMin using getAmountsOut or apply a percentage (2-5% typical)",
+    "- Formula: amountOutMin = expectedOutput * (1 - slippagePercent)",
+    "- For testing, can use 0 for amountOutMin (accepts any output)",
+    "",
+    "Success criteria:",
+    "- Transaction executes successfully",
+    "- Correct Jupiter Router is called",
+    "- SOL balance decreases by amountIn (plus gas)",
+    "- Token balance increases by at least amountOutMin"
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "token_out",
+      "description": "Target token to receive (USDT by default)",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "comment": "USDT on Solana"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "unit": "SOL",
+      "role": "swap_amount",
+      "description": "Amount of SOL to swap",
+      "generation": {
+        "method": "random",
+        "min": 0.1,
+        "max": 0.5,
+        "decimals": 4
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "balance_check",
+        "description": "Agent must have sufficient SOL balance (amount + gas)"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount}",
+        "tolerance": 0.01,
+        "description": "SOL balance decreased by swap amount (plus gas)"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "0",
+        "mint": "{token_address}",
+        "tolerance": 200,
+        "compute": 1,
+        "description": "Token balance increased (received output tokens)"
+      }
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "jupiter",
+      "swap",
+      "dex",
+      "amm",
+      "defi",
+      "sol-to-token"
+    ],
+    "estimated_gas": 200000,
+    "requires_contract": true,
+    "network": "mainnet",
+    "dex": "Jupiter V2",
+    "swap_type": "exact_input",
+    "difficulty_notes": [
+      "Basic DEX swap operation",
+      "Requires understanding of payable functions",
+      "Requires understanding of swap paths",
+      "Requires setting deadline parameter"
+    ]
+  }
+}

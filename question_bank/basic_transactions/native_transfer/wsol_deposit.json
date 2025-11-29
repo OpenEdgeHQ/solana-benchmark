@@ -1,0 +1,107 @@
+{
+  "id": "wsol_deposit",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "native_transfer",
+  "difficulty": "medium",
+  "title": "WSOL Deposit (Wrap SOL)",
+  
+  "natural_language_templates": [
+    "Deposit {amount} SOL to WSOL contract",
+    "Wrap {amount} SOL into WSOL",
+    "Convert {amount} SOL to WSOL",
+    "I want to deposit {amount} SOL to get WSOL"
+  ],
+  
+  "description": [
+    "Deposit native SOL into the WSOL (Wrapped SOL) contract to receive an equivalent amount of WSOL tokens.",
+    "",
+    "Technical context:",
+    "- WSOL is an ERC20 wrapper for native SOL, allowing SOL to be used in DeFi protocols",
+    "- The deposit() function is payable and mints WSOL tokens equal to msg.value",
+    "- Function signature: deposit() payable",
+    "- This requires calling a contract function, not just sending SOL",
+    "- Recommended gas limit: 60000",
+    "",
+    "Key considerations:",
+    "- Create a Contract instance with WSOL address and ABI",
+    "- Use contract.interface.encodeFunctionData('deposit', []) for the data field",
+    "- Set transaction 'to' to the WSOL contract address",
+    "- Set transaction 'value' to the amount of SOL to deposit",
+    "- After deposit, your WSOL token balance increases by the deposit amount",
+    "- Your native SOL balance decreases by the deposit amount (plus gas)"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "amount": {
+      "type": "number",
+      "unit": "SOL",
+      "description": "Amount of SOL to deposit",
+      "generation": {
+        "min": 0.001,
+        "max": 0.05,
+        "decimals": 3
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "balance",
+        "description": "Agent must have sufficient SOL balance",
+        "min_balance": "0.2 SOL"
+      },
+      {
+        "type": "contract_exists",
+        "description": "WSOL contract must exist",
+        "address": "{wsol_address}"
+      }
+    ],
+    
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "value_check",
+        "weight": 30,
+        "description": "Transaction calls WSOL contract",
+        "expected": "{amount}"
+      },
+      {
+        "type": "balance_change",
+        "weight": 20,
+        "description": "SOL token balance decreased by deposit amount",
+        "expected": "{amount}"
+      },
+      {
+        "type": "balance_change",
+        "weight": 20,
+        "compute": 1,
+        "mint": "So11111111111111111111111111111111111111112",
+        "description": "WSOL token balance increased by deposit amount",
+        "expected": "{amount}"
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["wsol", "wrap", "deposit", "native_token", "contract_call", "intermediate"],
+    "estimated_gas": 60000,
+    "requires_contract": true,
+    "contract_requirements": {
+      "contract_type": "WSOL",
+      "required_functions": ["deposit", "balanceOf"],
+      "note": "WSOL is a specific contract that wraps native SOL into an ERC20 token"
+    }
+  }
+}
+

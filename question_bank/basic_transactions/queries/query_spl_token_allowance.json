@@ -1,0 +1,86 @@
+{
+  "id": "query_spl_token_allowance",
+  "version": "2.0.0",
+  "category": "basic_transactions",
+  "subcategory": "queries",
+  "difficulty": "easy",
+  "title": "Query SPL Token Allowance",
+  
+  "description": [
+    "Query the SPL token allowance granted by an owner to a spender by calling the allowance function.",
+    "",
+    "Technical context:",
+    "- The return value is in token's smallest unit (considering decimals)",
+    "- This is a read-only view function, no transaction is required",
+    "- Allowance represents how much the spender can transfer on behalf of the owner",
+    "",
+    "Key considerations:",
+    "- Create contract instance with token address and SPL ABI",
+    "- Call allowance(address owner, address spender) view function",
+    "- Return both raw allowance (in wei/smallest unit) and human-readable allowance",
+    "- Consider token decimals when converting to human-readable format"
+  ],
+  
+  "natural_language_templates": [
+    "Query the token {token_address} allowance has approved for {spender_address}",
+    "Check how much {token_address} token is allowed to spend by {spender_address}",
+    "Get the allowance of token {token_address} from my wallet to spender {spender_address}",
+    "What is the token {token_address} allowance from my wallet to {spender_address}?"
+  ],
+  
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "SPL token contract address",
+      "generation": {
+        "method": "from_list",
+        "addresses": [
+        ]
+      }
+    },
+    "spender_address": {
+      "type": "address",
+      "role": "spender",
+      "description": "Spender address (who received the allowance)",
+      "generation": {
+        "method": "random",
+        "comment": "Random address for query operation"
+      }
+    }
+  },
+  
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "address_exists",
+        "description": "Owner and spender addresses must be valid"
+      },
+      {
+        "type": "contract_exists",
+        "description": "Token contract must exist"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "query_balance",
+        "weight": 100,
+        "mint": "{token_address}",
+        "description": "Query executed successfully"
+      }
+    ]
+  },
+  
+  "metadata": {
+    "tags": ["query", "allowance", "read-only", "approval"],
+    "estimated_gas": 0,
+    "requires_contract": true,
+    "operation_type": "query"
+  }
+}
+

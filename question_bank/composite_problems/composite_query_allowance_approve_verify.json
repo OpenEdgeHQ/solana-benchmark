@@ -1,0 +1,136 @@
+{
+  "id": "composite_query_allowance_approve_verify",
+  "category": "composite_problems",
+  "difficulty": "medium",
+  "tags": ["composite", "query-write-verify", "approval", "erc20"],
+  
+  "description": [
+    "You should do this steps:",
+    "1. Query SPL token delegate info",
+    "2. Approve token delegate using createApproveInstruction",
+    "3. Query the newest delegate info"
+  ],
+
+  "natural_language_templates": [
+    "Check the allowance for {spender_address}, approve {amount} {token_address}, then verify the allowance increased",
+    "Query current allowance, approve {spender_address} to spend {amount} {token_address}, and check the approval",
+    "First check how much {token_address} can {spender_address} spend, then approve {amount} {token_address}, and verify the approval succeeded",
+    "Query the allowance for {spender_address} on {token_address}, approve {amount} {token_address}, then verify the new allowance"
+  ],
+  
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "ERC20 token contract address",
+      "shared_across_steps": [1, 2, 3],
+      "generation": {
+        "method": "from_list",
+        "addresses": []
+      }
+    },
+    "spender_address": {
+      "type": "address",
+      "role": "spender",
+      "description": "Address to be approved as spender",
+      "generation": {
+        "method": "random"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "role": "amount",
+      "description": "Amount of tokens to approve",
+      "unit": "tokens",
+      "generation": {
+        "method": "random",
+        "min": 0.1,
+        "max": 0.5,
+        "decimals": 2
+      }
+    }
+  },
+  
+  "composite_structure": {
+    "description": "Query-Write-Verify pattern for ERC20 approval operation",
+    
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_spl_token_allowance",
+        "description": "Query initial allowance for spender",
+        "parameter_mapping": {
+          "token_address": "token_address",
+          "spender_address": "spender_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "spl_approve",
+        "description": "Approve spender to spend tokens",
+        "key_operation": true,
+        "parameter_mapping": {
+          "token_address": "token_address",
+          "spender_address": "spender_address",
+          "amount": "amount"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_spl_token_allowance",
+        "description": "Query final allowance to verify approval (optional)",
+        "optional": true,
+        "parameter_mapping": {
+          "token_address": "token_address",
+          "spender_address": "spender_address"
+        }
+      }
+    ],
+    
+    "interaction_config": {
+      "optimal_steps": 2,
+      "max_rounds_multiplier": 2,
+      "allow_error_report": true,
+      "require_submit": true,
+      "comment": "max_rounds = 2 × 2 = 4. Optimal path: query allowance, then approve (with inline verification)"
+    },
+    
+    "scoring_strategy": {
+      "method": "atomic_validator_reuse",
+      "key_operation_step": 2,
+      "key_operation_id": "erc20_approve",
+      "description": "Reuse ERC20 approve validator for scoring"
+    }
+  },
+  
+  "validation": {
+    "validator": "composite",
+    "success_criteria": [
+      "Initial allowance queried successfully",
+      "Approve transaction executed successfully",
+      "Correct amount approved",
+      "Spender address matches",
+      "Transaction confirmed on chain",
+      "Final allowance equals approved amount"
+    ],
+    "error_scenarios": [
+      {
+        "type": "INVALID_SPENDER_ADDRESS",
+        "condition": "Spender address is zero address",
+        "expected_behavior": "LLM should detect and report error"
+      }
+    ]
+  },
+  
+  "metadata": {
+    "priority": "P0",
+    "estimated_dev_time": "30 minutes",
+    "created_date": "2025-11-24",
+    "related_atomic_problems": [
+      "query_erc20_allowance",
+      "erc20_approve"
+    ],
+    "notes": "First composite problem for ERC20 approval operations. Tests LLM's ability to handle allowance management and verification."
+  }
+}
+
