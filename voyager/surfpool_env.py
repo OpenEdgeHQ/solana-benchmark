@@ -251,7 +251,7 @@ class SurfpoolEnv(gym.Env):
             # Convert WSOL
             _wrap_sol(self.agent_keypair, self.syncClient, 2 * 10 ** 9)
             # Mint some spl tokens
-            self.token_mints = _mint_spl_token(self.agent_keypair, self.syncClient, 1)
+            self.token_mints = _mint_spl_token(self.agent_keypair, self.syncClient)
             # Mint NFTs
             self.nft_mints = _create_and_mint_nft(self.agent_keypair_bs58)
         except Exception as e:

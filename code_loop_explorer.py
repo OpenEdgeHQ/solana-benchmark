@@ -168,7 +168,7 @@ class CodeLoopExplorer:
         # This allows the error handling to provide feedback
         return code_blocks[0].strip()
     
-    def _generate_system_prompt(self, env: SurfpoolEnv):
+    def _generate_system_prompt(self, question_key: str, env: SurfpoolEnv):
         """
         Build the system prompt for the agent.
         """
@@ -177,10 +177,7 @@ class CodeLoopExplorer:
         agent_pubkey = str(env.agent_keypair.pubkey())
 
         # Natural language prompt with random values
-        if self.debug_mode:
-            question = self.question_controller._load_question(os.getenv("QUESTION_NAME"), env)
-        else:
-            question = self.question_controller._load_question(None, env)
+        question = self.question_controller._load_question(question_key, env)
         natural_language_prompt = self.question_controller._generate_natural_language_prompt(question, env)
         if self.debug_mode:
             natural_language_prompt += f"\n{question.get("description", "")}"
@@ -198,10 +195,14 @@ class CodeLoopExplorer:
     
     async def run_exploration_loop(self, env: SurfpoolEnv):
         """Main exploration loop that extracts and executes code from agent responses."""
-        
-        while self.message_count < self.max_messages:
+        quest_names = self.question_controller.question_paths.keys()
+        for index, question_name in enumerate(quest_names):
+            if self.debug_mode and index > 0:
+                break
+
             # Initialize conversation with LangChain messages
-            (system_prompt, question, natural_language_prompt) = self._generate_system_prompt(env)
+            question_name = question_name if not self.debug_mode else os.getenv("QUESTION_NAME")
+            (system_prompt, question, natural_language_prompt) = self._generate_system_prompt(question_name, env)
             self.messages = [
                 SystemMessage(content=system_prompt)
             ]

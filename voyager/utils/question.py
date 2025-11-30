@@ -28,9 +28,10 @@ class QuestController:
     def _load_question(self, question_name: str | None, env: SurfpoolEnv) -> Dict[str, Any]:
         """Load question configuration"""
         # Random pick question if not specified
+        quest_names = list(self.question_paths.keys())
         if not question_name:
-            question_name = random.choice(self.question_paths.keys())
-        elif question_name not in self.question_paths.keys():
+            question_name = random.choice(quest_names)
+        elif question_name not in quest_names:
             raise FileNotFoundError(f"Question not found: {question_name}")
         
         question_file = Path(self.question_paths[question_name])
