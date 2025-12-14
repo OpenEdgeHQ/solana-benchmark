@@ -1,6 +1,6 @@
 from solana.rpc.async_api import AsyncClient, GetTransactionResp
 from typing import Dict, Any, List
-from solders.transaction_status import ParsedInstruction
+from solders.transaction_status import ParsedInstruction, UiPartiallyDecodedInstruction
 from spl.token.instructions import get_associated_token_address
 from solders.pubkey import Pubkey
 from decimal import Decimal
@@ -14,8 +14,9 @@ def _parse_balances(tx_result: GetTransactionResp, agent_pubkey: str):
         "fee": meta.fee,
         "category": "balance",
     }
+
+    pre_token_balance = []
     if meta.pre_token_balances:
-        pre_token_balance = []
         for pre_token_bal in meta.pre_token_balances:
             ata = get_associated_token_address(Pubkey.from_string(agent_pubkey), pre_token_bal.mint)
             token_info[str(pre_token_bal.mint)] = pre_token_bal.ui_token_amount.decimals
@@ -25,9 +26,10 @@ def _parse_balances(tx_result: GetTransactionResp, agent_pubkey: str):
                 "mint": str(pre_token_bal.mint),
                 "ui_amount": pre_token_bal.ui_token_amount.ui_amount_string
             })
-        total_balances["pre_token_balance"] = pre_token_balance
+    total_balances["pre_token_balance"] = pre_token_balance
+
+    post_token_balance = []
     if meta.post_token_balances:
-        post_token_balance = []
         for post_token_bal in meta.post_token_balances:
             ata = get_associated_token_address(Pubkey.from_string(agent_pubkey), post_token_bal.mint)
             token_info[str(post_token_bal.mint)] = post_token_bal.ui_token_amount.decimals
@@ -37,7 +39,8 @@ def _parse_balances(tx_result: GetTransactionResp, agent_pubkey: str):
                 "mint": str(post_token_bal.mint),
                 "ui_amount": post_token_bal.ui_token_amount.ui_amount_string
             })
-        total_balances["post_token_balance"] = post_token_balance
+    total_balances["post_token_balance"] = post_token_balance
+
     total_balances["token_info"] = token_info
     return total_balances
 
@@ -45,9 +48,12 @@ def _collect_instruction_data(tx_result: GetTransactionResp, agent_pubkey: str) 
     instructions = tx_result.value.transaction.transaction.message.instructions
     ix_data = [_parse_balances(tx_result, agent_pubkey)]
     token_info = ix_data[0].get("token_info")
-    print(ix_data)
 
     for ix in instructions:
+        if isinstance(ix, UiPartiallyDecodedInstruction):
+            if (str(ix.program_id) == "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK"):
+                ix_data.append({"programId": str(ix.program_id), "category": "raydium_liquidity"})
+
         if not isinstance(ix, ParsedInstruction):
             continue
 

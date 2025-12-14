@@ -11,7 +11,7 @@
     "Get the owner address for NFT {{nft_address}}",
     "Find out who currently owns NFT {{nft_address}}"
   ],
-  "blockchain": "bsc",
+  "blockchain": "Solana",
   "parameters": {
     "nft_address": {
       "type": "address",

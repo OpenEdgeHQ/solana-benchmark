@@ -249,7 +249,7 @@ class SurfpoolEnv(gym.Env):
             await self.client.confirm_transaction(airdrop_sig.value, "confirmed", 30.0)
             logging.info("Airdrop successful.")
             # Convert WSOL
-            _wrap_sol(self.agent_keypair, self.syncClient, 2 * 10 ** 9)
+            # _wrap_sol(self.agent_keypair, self.syncClient, 2 * 10 ** 9)
             # Mint some spl tokens
             self.token_mints = _mint_spl_token(self.agent_keypair, self.syncClient)
             # Mint NFTs

@@ -1,0 +1,181 @@
+{
+  "id": "composite_portfolio_rebalance",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "advanced_defi",
+  "difficulty": "hard",
+  "title": "Portfolio Rebalance: Query Holdings and Convert to USDC",
+  "natural_language_templates": [
+    "Rebalance portfolio: check USDT and TRUMP balances, swap {amount_usdt} USDT and {amount_trump} TRUMP to USDC, then verify",
+    "Query current holdings, convert {amount_usdt} USDT and {amount_trump} TRUMP to USDC"
+  ],
+  "description": [
+    "Advanced portfolio management workflow with multiple swaps.",
+    "",
+    "This is a 5-step process:",
+    "1. Query USDT balance to check holdings",
+    "2. Query TRUMP balance to check holdings",
+    "3. Swap USDT to USDC",
+    "4. Swap TRUMP to USDC (KEY OPERATION)",
+    "5. Query final USDC balance to verify rebalancing"
+  ],
+  "composite_structure": {
+    "pattern": "query-swap-swap-verify",
+    "optimal_steps": 5,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "usdt_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "trump_address"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "swap_exact_tokens_for_tokens",
+        "role": "rebalance",
+        "description": "Swap USDT to USDC",
+        "parameter_mapping": {
+          "amount": "amount_usdt",
+          "token_address": "usdt_address",
+          "token_out_address": "usdc_address"
+        }
+      },
+      {
+        "step": 4,
+        "atomic_id": "swap_exact_tokens_for_tokens",
+        "role": "key_operation",
+        "description": "Swap TRUMP to USDC",
+        "parameter_mapping": {
+          "amount": "amount_trump",
+          "token_address": "trump_address",
+          "token_out_address": "usdc_address"
+        }
+      },
+      {
+        "step": 5,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "usdc_address"
+        }
+      }
+    ],
+    "interaction_config": {
+      "max_rounds": 10,
+      "optimal_steps": 5,
+      "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+      "forced_submit_at_max": true
+    }
+  },
+  "parameters": {
+    "usdt_address": {
+      "type": "address",
+      "role": "token",
+      "description": "USDT token address",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+      }
+    },
+    "trump_address": {
+      "type": "address",
+      "role": "token",
+      "description": "TRUMP token address",
+      "generation": {
+        "method": "fixed",
+        "value": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+      }
+    },
+    "usdc_address": {
+      "type": "address",
+      "role": "token",
+      "description": "USDC token address",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      }
+    },
+    "amount_usdt": {
+      "type": "number",
+      "unit": "USDT",
+      "role": "swap_amount",
+      "description": "Amount of USDT to swap to USDC",
+      "generation": {
+        "method": "random",
+        "min": 10.0,
+        "max": 30.0,
+        "decimals": 1
+      }
+    },
+    "amount_trump": {
+      "type": "number",
+      "unit": "TRUMP",
+      "role": "swap_amount",
+      "description": "Amount of TRUMP to swap to USDC",
+      "generation": {
+        "method": "random",
+        "min": 5.0,
+        "max": 10.0,
+        "decimals": 1
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 50.0
+      }
+    }
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "swap_exact_tokens_for_tokens",
+    "key_operation_step": 4
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient USDT",
+        "min_balance": "100 USDT"
+      },
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient TRUMP",
+        "min_balance": "50 TRUMP"
+      }
+    ],
+    "post_conditions": [
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "defi",
+      "portfolio",
+      "rebalance",
+      "multi-swap",
+      "query",
+      "advanced",
+      "hard"
+    ],
+    "estimated_gas": 600000,
+    "requires_approval": true,
+    "difficulty_notes": [
+      "Five-step portfolio management workflow",
+      "Requires querying multiple token balances",
+      "Two separate swap operations",
+      "Must handle different swap paths"
+    ]
+  }
+}
+

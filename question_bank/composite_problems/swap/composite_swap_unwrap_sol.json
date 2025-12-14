@@ -1,0 +1,129 @@
+{
+  "id": "composite_swap_unwrap_sol",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "swap_unwrap",
+  "difficulty": "medium",
+  "title": "Swap Token to WSOL and Unwrap to SOL",
+  "natural_language_templates": [
+    "Swap {amount_in} USDT for WSOL on Jupiter, then unwrap all WSOL to SOL",
+    "Exchange {amount_in} USDT tokens for WSOL, then withdraw WSOL to get SOL",
+    "Convert {amount_in} USDT to WSOL using Jupiter, then unwrap to native SOL"
+  ],
+  "description": [
+    "This is a 2-step process:",
+    "1. Swap tokens for WSOL",
+    "2. Withdraw WSOL to get native SOL"
+  ],
+  "composite_structure": {
+    "pattern": "swap-unwrap",
+    "optimal_steps": 2,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "swap_exact_tokens_for_tokens",
+        "role": "key_operation",
+        "description": "Swap input tokens for output tokens",
+        "parameter_mapping": {
+          "amount": "amount_in",
+          "token_address": "token_in_address",
+          "token_out_address": "token_out_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "wsol_withdraw",
+        "role": "key_operation",
+        "description": "Withdraw WSOL to get native SOL",
+        "parameter_mapping": {
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "token_out_address": {
+      "type": "address",
+      "role": "token_out",
+      "description": "Output token address",
+      "generation": {
+        "method": "fixed",
+        "value": "So11111111111111111111111111111111111111112"
+      }
+    },
+    "token_in_address": {
+      "type": "address",
+      "role": "token_in",
+      "description": "Input token address to swap",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "comment": "USDT on Solana"
+      }
+    },
+    "amount_in": {
+      "type": "number",
+      "unit": "token",
+      "role": "swap_amount",
+      "description": "Amount of input tokens to swap",
+      "generation": {
+        "method": "random",
+        "min": 20.0,
+        "max": 50.0,
+        "decimals": 2
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 4,
+    "optimal_steps": 2,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "wsol_withdraw",
+    "key_operation_step": 2
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient input token balance",
+        "min_balance": "50 tokens"
+      },
+      {
+        "type": "token_approval",
+        "description": "Token must be approved for Router"
+      }
+    ],
+    "post_conditions": []
+  },
+  "metadata": {
+    "tags": [
+      "swap-unwrap",
+      "defi",
+      "wsol",
+      "pancakeswap",
+      "unwrap",
+      "two-step"
+    ],
+    "estimated_gas": 260000,
+    "requires_approval": true,
+    "difficulty_notes": [
+      "Two-step process: swap to WSOL, then unwrap",
+      "Must correctly sequence both operations",
+      "Need to handle the swap output amount for withdraw"
+    ]
+  }
+}
+

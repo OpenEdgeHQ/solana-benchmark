@@ -80,7 +80,8 @@
         "type": "balance_change",
         "weight": 20,
         "description": "SOL token balance decreased by deposit amount",
-        "expected": "{amount}"
+        "expected": "{amount}",
+        "tolerance": 0.003
       },
       {
         "type": "balance_change",

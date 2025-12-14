@@ -1,0 +1,120 @@
+{
+  "id": "composite_query_swap_verify_output",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "complete_workflow",
+  "difficulty": "medium",
+  "title": "Query Expected Output, Swap SOL, and Verify Result",
+  "natural_language_templates": [
+    "Calculate expected output for {amount_sol} SOL swap to {token_out_symbol}, execute the swap, then verify you got the expected amount",
+    "First check how much USDC you would get for {amount_sol} SOL, then swap SOL to USDC, and verify the received amount"
+  ],
+  "description": [
+    "Complete swap verification workflow: query expected output, execute swap, and verify.",
+    "This is a 3-step process:",
+    "1. Query expected swap output using Jupiter",
+    "2. Execute the swap using swapExactETHForTokens()",
+    "3. Query token balance to verify the received amount"
+  ],
+  "composite_structure": {
+    "pattern": "query-swap-verify",
+    "optimal_steps": 3,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "token_out_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "swap_exact_sol_for_tokens",
+        "parameter_mapping": {
+          "token_address": "token_out_address",
+          "amount": "amount_sol"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_spl_token_balance",
+        "parameter_mapping": {
+          "token_address": "token_out_address"
+        },
+        "description": "Verify received token amount"
+      }
+    ]
+  },
+  "parameters": {
+    "token_out_address": {
+      "type": "address",
+      "role": "token_out",
+      "description": "Output token address (USDT)",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      }
+    },
+    "amount_sol": {
+      "type": "number",
+      "unit": "SOL",
+      "role": "swap_amount",
+      "description": "Amount of SOL to swap",
+      "generation": {
+        "method": "random",
+        "min": 0.1,
+        "max": 0.5,
+        "decimals": 3
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 6,
+    "optimal_steps": 3,
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "swap_exact_bnb_for_tokens",
+    "key_operation_step": 2
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "bnb_balance",
+        "description": "Agent must have sufficient SOL for swap",
+        "min_balance": "0.1 SOL"
+      }
+    ],
+    "post_conditions": [
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "defi",
+      "swap",
+      "verification",
+      "query",
+      "complete-workflow",
+      "medium"
+    ],
+    "estimated_gas": 200000,
+    "requires_approval": false,
+    "difficulty_notes": [
+      "Three-step verification workflow",
+      "Must query expected output first",
+      "Compare expected vs actual output"
+    ]
+  }
+}
+

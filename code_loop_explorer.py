@@ -53,7 +53,8 @@ class CodeLoopExplorer:
         if environment_config:
             self.load_environment_config(environment_config)
             question_path = self.env_config.get("question_path")
-            self.question_controller = QuestController(question_path)
+            question_bench = self.env_config.get("question_bench", "")
+            self.question_controller = QuestController(question_path, question_bench)
             if len(self.question_controller.question_paths) == 0:
                 raise RuntimeError(f"No questions found in {question_path}")
         else:
@@ -195,7 +196,7 @@ class CodeLoopExplorer:
     
     async def run_exploration_loop(self, env: SurfpoolEnv):
         """Main exploration loop that extracts and executes code from agent responses."""
-        quest_names = self.question_controller.question_paths.keys()
+        quest_names = self.question_controller.question_benches.keys()
         for index, question_name in enumerate(quest_names):
             if self.debug_mode and index > 0:
                 break

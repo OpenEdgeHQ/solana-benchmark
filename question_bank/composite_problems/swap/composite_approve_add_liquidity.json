@@ -1,0 +1,114 @@
+{
+  "id": "composite_approve_add_liquidity",
+  "category": "composite_problems",
+  "difficulty": "medium",
+  "title": "Approve and Add Liquidity to Raydium",
+  "description": [
+    "A composite problem that tests the LLM's ability to:",
+    "1. Execute approvals for token to Raydium Router",
+    "2. Execute add liquidity operation",
+    "This demonstrates the DeFi approval pattern for liquidity provision."
+  ],
+  "natural_language_templates": [
+    "Approve {amount_token} USDT for {spender_address}, then add {amount_token} USDT and {amount_sol} SOL as liquidity on Raydium"
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "composite_structure": {
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "spl_approve",
+        "description": "Approve Raydium to spend token",
+        "parameter_mapping": {
+          "spender_address": "spender_address",
+          "token_address": "token_address",
+          "amount": "amount_token"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "add_liquidity_sol_token",
+        "description": "Add liquidity to token pair",
+        "parameter_mapping": {
+          "token_address": "token_address",
+          "amount_token": "amount_token",
+          "amount_sol": "amount_sol"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "spender_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "Raydium V2 Router contract address",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "fixed",
+        "value": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+        "comment": "Raydium V2 Router on Solana"
+      }
+    },
+    "token_address": {
+      "type": "address",
+      "description": "First token address (USDT)",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "comment": "USDT on Solana"
+      }
+    },
+    "amount_token": {
+      "type": "number",
+      "unit": "tokens",
+      "description": "Amount of token A to add as liquidity",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "fixed",
+        "value": 70
+      }
+    },
+    "amount_sol": {
+      "type": "number",
+      "unit": "tokens",
+      "role": "liquidity_amount",
+      "description": "Amount of SOL to add as liquidity",
+      "shared_across_steps": [2],
+      "generation": {
+        "method": "fixed",
+        "value": 0.5
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance (e.g., 5 for 5%)",
+      "shared_across_steps": [2],
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "interaction_config": {
+    "optimal_steps": 2,
+    "max_rounds_multiplier": 2,
+    "comment": "max_rounds = optimal_steps * max_rounds_multiplier = 2 * 2 = 4"
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "description": "Directly reuse the atomic validator of the key operation - NO code duplication!",
+    "key_operation_step": 2,
+    "key_operation_id": "add_liquidity_tokens",
+    "key_operation_alias": "add_liquidity",
+    "validator_class": "AddLiquidityTokensValidator",
+    "note": "The validator will load AddLiquidityTokensValidator and call its validate() method directly"
+  },
+  "tags": ["approve-execute", "defi", "liquidity"]
+}
+

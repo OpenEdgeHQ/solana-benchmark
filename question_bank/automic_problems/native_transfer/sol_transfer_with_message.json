@@ -24,7 +24,7 @@
   ],
   
   "blockchain": {
-    "chain": "BSC",
+    "chain": "Solana",
     "network": "testnet"
   },
   

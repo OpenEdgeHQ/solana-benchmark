@@ -6,44 +6,12 @@
   "difficulty": "medium",
   "title": "Jupiter Swap - Token to SOL",
   "natural_language_templates": [
-    "Swap {amount} {token_address} for SOL on Jupiter",
-    "Exchange {amount} {token_address} to SOL using Jupiter Router",
-    "Convert {amount} {token_address} tokens to SOL through Jupiter V2",
-    "Trade {amount} {token_address} for SOL on Jupiter with {slippage}% slippage tolerance"
+    "Swap {amount} USDT for SOL on Jupiter",
+    "Exchange {amount} USDT to SOL using Jupiter Router",
+    "Convert {amount} USDT tokens to SOL through Jupiter V6",
+    "Trade {amount} USDT for SOL on Jupiter with {slippage}% slippage tolerance"
   ],
   "description": [
-    "Swap ERC20 tokens for SOL using Jupiter V2 Router's swapExactTokensForETH function.",
-    "",
-    "Technical context:",
-    "- Jupiter V2 Router (Solana Mainnet): 0x10ED43C718714eb63d5aA57B78B54704E256024E",
-    "- Function signature: swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)",
-    "- This function requires prior token approval to the Router contract",
-    "- The swap follows Uniswap V2 AMM (Automated Market Maker) model: x * y = k",
-    "- Function selector: 0x18cbafe5",
-    "- Recommended gas limit: 180000",
-    "",
-    "Key considerations:",
-    "- MUST approve tokens to Router before calling swap function",
-    "- amountIn: Exact amount of tokens to swap",
-    "- amountOutMin: Minimum amount of SOL to receive (slippage protection)",
-    "- path: Array of token addresses for the swap route [TOKEN, WSOL]",
-    "- to: Recipient address (usually the sender/agent address)",
-    "- deadline: Unix timestamp after which the transaction will revert",
-    "",
-    "Two-step process:",
-    "1. Call approve(router, amountIn) on the token contract",
-    "2. Call swapExactTokensForETH on the router contract",
-    "",
-    "Slippage protection:",
-    "- Calculate amountOutMin using getAmountsOut or apply a percentage (2-5% typical)",
-    "- Formula: amountOutMin = expectedOutput * (1 - slippagePercent)",
-    "- For testing, can use 0 for amountOutMin (accepts any output)",
-    "",
-    "Success criteria:",
-    "- Transaction executes successfully",
-    "- Correct Jupiter Router is called",
-    "- Token balance decreases by amountIn",
-    "- SOL balance increases by at least amountOutMin (minus gas)"
   ],
   "blockchain": {
     "chain": "Solana",
@@ -56,7 +24,7 @@
       "description": "Input token to swap (USDT by default)",
       "generation": {
         "method": "fixed",
-        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
         "comment": "USDT on Solana"
       }
     },

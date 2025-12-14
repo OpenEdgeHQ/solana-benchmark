@@ -79,7 +79,7 @@
         "description": "Token balance changed correctly",
         "expected": "1",
         "mint": "{nft_address}",
-        "tolerance": "0"
+        "tolerance": 0
       },
       {
         "type": "balance_change",
@@ -89,7 +89,7 @@
         "compute": 1,
         "owner": "{to_address}",
         "mint": "{nft_address}",
-        "tolerance": "0"
+        "tolerance": 0
       }
     ]
   },

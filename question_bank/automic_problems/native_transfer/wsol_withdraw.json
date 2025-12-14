@@ -14,22 +14,7 @@
   ],
   
   "description": [
-    "Withdraw WSOL tokens from the WSOL contract to receive an equivalent amount of native SOL.",
-    "",
-    "Technical context:",
-    "- The withdraw(uint256) function burns WSOL tokens and sends native SOL back",
-    "- Function signature: withdraw(uint256 wad)",
-    "- The amount must be in wei (smallest unit)",
-    "- You must have sufficient WSOL balance before withdrawal",
-    "- Recommended gas limit: 60000",
-    "",
-    "Key considerations:",
-    "- Create a Contract instance with WSOL address and ABI",
-    "- Use contract.interface.encodeFunctionData('withdraw', [amount]) for the data field",
-    "- Set transaction 'to' to the WSOL contract address",
-    "- Set transaction 'value' to 0 (not sending SOL, just calling contract)",
-    "- After withdrawal, your WSOL token balance decreases",
-    "- Your native SOL balance increases by the withdrawal amount (minus gas)"
+    "Withdraw WSOL tokens from the WSOL contract to receive an equivalent amount of native SOL."
   ],
   
   "blockchain": {

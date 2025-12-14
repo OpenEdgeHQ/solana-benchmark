@@ -1,0 +1,147 @@
+{
+  "id": "composite_approve_swap_query_result",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "complete_workflow",
+  "difficulty": "medium",
+  "title": "Approve, Swap, and Query Result",
+  "natural_language_templates": [
+    "Approve {amount_in} USDT to {spender_address}, swap it for USDC, then check how much USDC you received",
+    "Approve {spender_address} to spend {amount_in} USDT, swap {amount_in} USDT to USDC, and verify the USDC balance",
+    "First approve {amount_in} USDT for {spender_address}, then swap for USDC, and finally query your USDC balance"
+  ],
+  "description": [
+    "This is a 3-step process:",
+    "1. Approve JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 to spend input tokens",
+    "2. Swap input tokens for output tokens using Jupiter",
+    "3. Query the output token balance to verify the swap result"
+  ],
+  "composite_structure": {
+    "pattern": "approve-swap-query",
+    "optimal_steps": 3,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "spl_approve",
+        "description": "Approve spender to spend tokens",
+        "parameter_mapping": {
+          "spender_address": "spender_address",
+          "token_address": "token_in_address",
+          "amount": "amount_in"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "swap_exact_tokens_for_tokens",
+        "role": "key_operation",
+        "description": "Swap input tokens for output tokens",
+        "parameter_mapping": {
+          "amount": "amount_in",
+          "token_address": "token_in_address",
+          "token_out_address": "token_out_address"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_spl_token_balance",
+        "alias": "post_balance_query",
+        "description": "Query final token balance to verify transfer",
+        "purpose": "verification",
+        "parameter_mapping": {
+          "token_address": "token_out_address"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "token_in_address": {
+      "type": "address",
+      "role": "token_in",
+      "description": "Input token address",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "comment": "USDT on Solana"
+      }
+    },
+    "token_out_address": {
+      "type": "address",
+      "role": "token_out",
+      "description": "Output token address",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "comment": "USDC on Solana"
+      }
+    },
+    "spender_address": {
+      "type": "address",
+      "generation": {
+        "method": "fixed",
+        "value": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+      }
+    },
+    "amount_in": {
+      "type": "number",
+      "unit": "token",
+      "role": "swap_amount",
+      "description": "Amount of input tokens to swap",
+      "generation": {
+        "method": "random",
+        "min": 20.0,
+        "max": 50.0,
+        "decimals": 2
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 6,
+    "optimal_steps": 3,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "swap_exact_tokens_for_tokens",
+    "key_operation_step": 2
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient input token balance",
+        "min_balance": "50 tokens"
+      }
+    ],
+    "post_conditions": []
+  },
+  "metadata": {
+    "tags": [
+      "defi",
+      "swap",
+      "complete-workflow",
+      "approve",
+      "query",
+      "medium"
+    ],
+    "estimated_gas": 250000,
+    "requires_approval": true,
+    "difficulty_notes": [
+      "Three-step complete workflow",
+      "Must correctly sequence all operations",
+      "Requires understanding of approval mechanism",
+      "Query step verifies the result"
+    ]
+  }
+}
+

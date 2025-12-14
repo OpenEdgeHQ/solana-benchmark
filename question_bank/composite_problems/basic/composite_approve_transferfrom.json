@@ -10,8 +10,8 @@
     "This demonstrates the SPL approval pattern where authorization is granted first, then used."
   ],
   "natural_language_templates": [
-    "Approve {spender_address} to spend {amount} {token_address}, then transfer {amount} {token_address} from your account to {to_address}",
-    "First approve the spender, then execute transferFrom to move {amount} {token_address} tokens"
+    "Approve {spender_address} to spend {amount} USDT, then transfer {amount} USDT from your account to {to_address}",
+    "First approve the spender, then execute transferFrom to move {amount} USDT tokens"
   ],
   "blockchain": {
     "chain": "Solana",
@@ -21,13 +21,19 @@
     "atomic_operations": [
       {
         "step": 1,
-        "atomic_id": "s p l_approve",
-        "description": "Approve spender to spend tokens"
+        "atomic_id": "spl_approve",
+        "description": "Approve spender to spend tokens",
+        "parameter_mapping": {
+          "spender_address": "spender_address",
+          "token_address": "token_address",
+          "amount": "amount"
+        }
       },
       {
         "step": 2,
         "atomic_id": "spl_transferfrom_basic",
-        "description": "Execute transferFrom using the approval"
+        "description": "Execute transferFrom using the approval",
+        "parameter_mapping": {}
       }
     ]
   },
@@ -37,8 +43,8 @@
       "role": "contract",
       "shared_across_steps": [1, 2],
       "generation": {
-        "method": "from_list",
-        "addresses": []
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
       }
     },
     "spender_address": {

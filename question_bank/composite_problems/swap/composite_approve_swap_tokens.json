@@ -1,0 +1,105 @@
+{
+  "id": "composite_approve_swap_tokens",
+  "category": "composite_problems",
+  "difficulty": "medium",
+  "title": "Approve and Swap Tokens on Jupiter",
+  "description": [
+    "A composite problem that tests the LLM's ability to:",
+    "1. Execute an SPL approval for Jupiter",
+    "2. Execute a token-to-token swap using the approval"
+  ],
+  "natural_language_templates": [
+    "Approve {spender_address} to spend {amount_in} USDT, then swap {amount_in} USDT for USDC",
+    "First approve {amount_in} USDT to {spender_address}, then swap {amount_in} USDT to USDC on Jupiter"
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "composite_structure": {
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "spl_approve",
+        "description": "Approve spender to spend tokens",
+        "parameter_mapping": {
+          "spender_address": "spender_address",
+          "token_address": "token_in_address",
+          "amount": "amount_in"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "swap_exact_tokens_for_tokens",
+        "role": "key_operation",
+        "description": "Swap input tokens for output tokens",
+        "parameter_mapping": {
+          "amount": "amount_in",
+          "token_address": "token_in_address",
+          "token_out_address": "token_out_address"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "spender_address": {
+      "type": "address",
+      "generation": {
+        "method": "fixed",
+        "value": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+      }
+    },
+    "token_in_address": {
+      "type": "address",
+      "role": "token_in",
+      "description": "Input token to swap (USDT)",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "comment": "USDT on Solana"
+      }
+    },
+    "token_out_address": {
+      "type": "address",
+      "role": "token_out",
+      "description": "Output token address",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "comment": "USDC on Solana"
+      }
+    },
+    "amount_in": {
+      "type": "number",
+      "unit": "tokens",
+      "role": "swap_amount",
+      "description": "Amount of input tokens to swap",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "random",
+        "min": 20.0,
+        "max": 50.0,
+        "decimals": 2
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance for the swap (e.g., 5 for 5%)",
+      "shared_across_steps": [2],
+      "generation": {
+        "method": "fixed",
+        "value": 5
+      }
+    }
+  },
+  "interaction_config": {
+    "optimal_steps": 2,
+    "max_rounds_multiplier": 2,
+    "comment": "max_rounds = optimal_steps * max_rounds_multiplier = 2 * 2 = 4"
+  },
+  "tags": ["approve-execute", "defi", "swap"]
+}
+

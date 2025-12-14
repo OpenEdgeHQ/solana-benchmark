@@ -12,18 +12,24 @@ class QuestController:
     def __init__(
         self,
         question_path: str | None,
+        question_bench: str,
     ):
         self.question_paths = {}
+        self.question_benches = {}
         self.parameter_generator = ParameterGenerator()
         if question_path and Path(question_path).exists():
-            self._find_question_files(question_path)
+            self._find_question_files(question_path, self.question_paths)
+        if question_bench and Path(question_bench).exists():
+            self._find_question_files(question_bench, self.question_benches)
+        else:
+            raise FileNotFoundError(f"Bench dir not found: {question_bench}")
 
-    def _find_question_files(self, path):
+    def _find_question_files(self, path, container):
         for dir in Path(path).iterdir():
             if dir.is_file() and dir.name.endswith(".json"):
-                self.question_paths[dir.name.replace(".json", "")] = dir
+                container[dir.name.replace(".json", "")] = dir
             elif dir.is_dir():
-                self._find_question_files(dir)
+                self._find_question_files(dir, container)
 
     def _load_question(self, question_name: str | None, env: SurfpoolEnv) -> Dict[str, Any]:
         """Load question configuration"""

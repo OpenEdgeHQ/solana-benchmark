@@ -1,0 +1,126 @@
+{
+  "id": "add_liquidity_sol_token",
+  "category": "defi_operations",
+  "subcategory": "raydium_liquidity",
+  "difficulty": "medium",
+  "title": "Raydium Add Liquidity - SOL + Token",
+  "natural_language_templates": [
+    "Add {amount} SOL and {amount_token} USDT as liquidity to Raydium",
+    "Provide liquidity to Raydium: {amount_sol} SOL + {amount_token} USDT",
+    "Deposit {amount_sol} SOL and {amount_token} USDT into Raydium liquidity pool",
+    "Add liquidity pair on Raydium: {amount_sol} SOL paired with {amount_token} USDT"
+  ],
+  "description": [],
+  "blockchain": {
+    "network": "solana"
+  },
+  "parameters": {
+    "spender_address": {
+      "type": "address",
+      "description": "Token address to pair with SOL",
+      "generation": {
+        "method": "fixed",
+        "value": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK"
+      }
+    },
+    "token_address": {
+      "type": "address",
+      "description": "Token address to pair with SOL",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+      }
+    },
+    "amount_sol": {
+      "type": "number",
+      "description": "Amount of SOL to add as liquidity (in SOL, e.g., 0.1)",
+      "generation": {
+        "method": "random",
+        "min": 0.5,
+        "max": 1,
+        "decimals": 3
+      }
+    },
+    "amount_token": {
+      "type": "number",
+      "description": "Desired amount of tokens to add as liquidity (in human-readable format)",
+      "generation": {
+        "method": "fixed",
+        "value": 70
+      },
+      "role": "transfer_amount"
+    },
+    "slippage": {
+      "type": "number",
+      "description": "Maximum acceptable slippage percentage (e.g., 5.0 for 5%)",
+      "generation": {
+        "method": "fixed",
+        "value": 0.5
+      },
+      "role": "parameter"
+    }
+  },
+  "preconditions": {
+    "account_balance": {
+      "description": "Test account must have sufficient SOL balance",
+      "minimum_balance_sol": "{{amount_sol}}"
+    },
+    "token_balance": {
+      "description": "Test account must have sufficient token balance",
+      "token": "{{token_address}}",
+      "minimum_balance": "{{amount_token}}"
+    }
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "balance_check",
+        "description": "Test account must have sufficient SOL balance",
+        "min_balance": "{amount_sol}"
+      },
+      {
+        "type": "token_balance",
+        "description": "Test account must have sufficient token balance",
+        "token": "{token_address}",
+        "min_balance": "{amount_token}"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount_sol}",
+        "tolerance": 0,
+        "description": "SOL balance decreased correctly"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount_token}",
+        "mint": "{token_address}",
+        "tolerance": 100,
+        "description": "Token balance increased (received output tokens)"
+      }
+    ]
+  },
+  "metadata": {
+    "estimated_gas": "200000-250000",
+    "requires_native_token": true,
+    "complexity": "medium",
+    "tags": [
+      "defi",
+      "dex",
+      "liquidity",
+      "raydium",
+      "amm",
+      "lp-token"
+    ],
+    "requires_contract": false
+  },
+  "version": "2.0.0"
+}

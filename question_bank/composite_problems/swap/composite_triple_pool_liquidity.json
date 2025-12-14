@@ -1,0 +1,136 @@
+{
+  "id": "composite_triple_pool_liquidity",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "advanced_defi",
+  "difficulty": "hard",
+  "title": "Triple Pool: SOL to Stablecoin Liquidity",
+  "natural_language_templates": [
+    "Swap {amount} SOL to USDT, then swap half USDT to TRUMP, and add liquidity to USDT/TRUMP pool on Raydium"
+  ],
+  "description": [
+    "Complex DeFi workflow to convert SOL to stablecoin liquidity position.",
+    "This is a 3-step process:",
+    "1. Swap SOL for USDT on Raydium",
+    "2. Swap half USDT for TRUMP",
+    "3. Add liquidity to USDT/TRUMP pool"
+  ],
+  "composite_structure": {
+    "pattern": "multi-swap-liquidity",
+    "optimal_steps": 6,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "swap_exact_sol_for_tokens",
+        "description": "Swap SOL for USDT",
+        "parameter_mapping": {
+          "token_address": "usdt_address",
+          "amount": "amount_sol"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "swap_percentage_tokens_for_tokens",
+        "role": "conversion",
+        "parameter_mapping": {
+          "percentage": "0.5",
+          "token_address": "usdt_address",
+          "token_out_address": "trump_address"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "add_liquidity_tokens",
+        "role": "key_operation",
+        "description": "Add USDT/TRUMP liquidity",
+        "parameter_mapping": {
+          "amount_token_a": "65",
+          "token_a_address": "usdt_address",
+          "amount_token_b": "13",
+          "token_b_address": "trump_address"
+        }
+      }
+    ],
+    "interaction_config": {
+      "max_rounds": 12,
+      "optimal_steps": 6,
+      "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+      "forced_submit_at_max": true
+    }
+  },
+  "parameters": {
+    "amount": {
+      "type": "number",
+      "unit": "SOL",
+      "role": "input",
+      "description": "Amount of SOL to start with",
+      "generation": {
+        "method": "fixed",
+        "value": 0.5
+      }
+    },
+    "usdt_address": {
+      "type": "address",
+      "role": "token",
+      "description": "USDT token address",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+      }
+    },
+    "trump_address": {
+      "type": "address",
+      "role": "token",
+      "description": "TRUMP token address",
+      "generation": {
+        "method": "fixed",
+        "value": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 50.0
+      }
+    }
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "add_liquidity_tokens",
+    "key_operation_step": 3
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "sol_balance",
+        "description": "Agent must have sufficient SOL",
+        "min_balance": "5 SOL"
+      }
+    ],
+    "post_conditions": [
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "defi",
+      "liquidity",
+      "multi-swap",
+      "stablecoin",
+      "advanced",
+      "hard"
+    ],
+    "estimated_gas": 1000000,
+    "requires_approval": true,
+    "difficulty_notes": [
+      "Six-step workflow with multiple swaps",
+      "Three approval transactions required",
+      "Stablecoin pool liquidity provision",
+      "Complex token flow management"
+    ]
+  }
+}
+

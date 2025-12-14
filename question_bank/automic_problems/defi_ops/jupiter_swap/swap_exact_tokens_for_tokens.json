@@ -1,0 +1,121 @@
+{
+  "id": "swap_exact_tokens_for_tokens",
+  "version": "2.0.0",
+  "category": "defi_operations",
+  "subcategory": "balance",
+  "difficulty": "medium",
+  "title": "Jupiter Swap - Token to Token",
+  "natural_language_templates": [
+    "Swap {amount} USDT for USDC on Jupiter",
+    "Exchange {amount} USDT to USDC using Jupiter Router",
+    "Convert {amount} USDT tokens to USDC through Jupiter V6",
+    "Trade {amount} USDT for USDC on Jupiter with {slippage}% slippage tolerance"
+  ],
+  "description": [
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "parameters": {
+    "token_address": {
+      "type": "address",
+      "role": "token_in",
+      "description": "Input token to swap (USDT by default)",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "comment": "USDT on Solana"
+      }
+    },
+    "token_out_address": {
+      "type": "address",
+      "role": "token_out",
+      "description": "Output token to receive",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "comment": "USDC on Solana"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "unit": "token",
+      "role": "swap_amount",
+      "description": "Amount of input tokens to swap",
+      "generation": {
+        "method": "random",
+        "min": 20,
+        "max": 50,
+        "decimals": 2
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance_check",
+        "description": "Agent must have sufficient input token balance"
+      }
+    ],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount}",
+        "mint": "{token_address}",
+        "tolerance": 0,
+        "description": "USDC balance decreased by swap amount (plus gas)"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "compute": 1,
+        "expected": "0",
+        "mint": "{token_out_address}",
+        "tolerance": 50,
+        "description": "Token balance increased (received output tokens)"
+      }
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "jupiter",
+      "swap",
+      "dex",
+      "amm",
+      "defi",
+      "token-to-token",
+      "approval-required",
+      "multi-hop"
+    ],
+    "estimated_gas": 200000,
+    "requires_contract": true,
+    "requires_approval": true,
+    "network": "mainnet",
+    "dex": "Jupiter V2",
+    "swap_type": "exact_input",
+    "difficulty_notes": [
+      "Requires understanding of token approval mechanism",
+      "Two-step process: approve + swap",
+      "Requires understanding of swap paths",
+      "May need multi-hop routing through WBNB",
+      "Must track two different token balances"
+    ]
+  }
+}

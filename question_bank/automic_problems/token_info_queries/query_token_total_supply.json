@@ -11,7 +11,7 @@
     "Check how many tokens exist in total for {token_address}",
     "Retrieve the totalSupply of token {token_address}"
   ],
-  "blockchain": "bsc",
+  "blockchain": "Solana",
   "parameters": {
     "token_address": {
       "type": "address",

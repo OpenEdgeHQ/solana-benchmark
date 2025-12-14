@@ -1,0 +1,125 @@
+{
+  "id": "remove_liquidity_sol_token",
+  "category": "defi_operations",
+  "subcategory": "raydium_liquidity",
+  "difficulty": "medium",
+  "title": "Raydium Remove Liquidity - SOL + Token",
+  "natural_language_templates": [
+    "Remove my liquidity from the SOL/USDT pool on Raydium",
+    "Withdraw liquidity from Raydium SOL-USDT pair"
+  ],
+  "description": [],
+  "blockchain": {
+    "network": "Solana",
+    "contract_address": "{{spender_address}}"
+  },
+  "parameters": {
+    "spender_address": {
+      "type": "address",
+      "role": "contract",
+      "description": "Raydium V2 Router contract address",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "fixed",
+        "value": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+        "comment": "Raydium V2 Router on Solana"
+      }
+    },
+    "token_address": {
+      "type": "address",
+      "description": "First token address (USDT)",
+      "shared_across_steps": [1, 2],
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "comment": "USDT on Solana"
+      }
+    },
+    "liquidity_percentage": {
+      "type": "number",
+      "description": "Percentage of LP tokens to remove (0-100)",
+      "generation": {
+        "method": "fixed",
+        "value": 50.0
+      },
+      "role": "parameter"
+    },
+    "slippage": {
+      "type": "number",
+      "description": "Maximum acceptable slippage percentage (e.g., 5.0 for 5%)",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      },
+      "role": "parameter"
+    }
+  },
+  "preconditions": {
+    "lp_token_balance": {
+      "description": "Test account must have LP tokens for SOL/Token pair",
+      "minimum_balance": "> 0"
+    },
+    "lp_token_approval": {
+      "description": "LP tokens should be approved for Raydium Router",
+      "spender": "{{spender_address}}"
+    }
+  },
+  "validation": {
+    "pre_conditions": [],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount_sol}",
+        "tolerance": 0,
+        "compute": 1,
+        "description": "SOL balance decreased correctly"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount_token}",
+        "mint": "{token_address}",
+        "tolerance": 100,
+        "compute": 1,
+        "description": "Token balance increased (received output tokens)"
+      }
+    ]
+  },
+  "metadata": {
+    "estimated_gas": "200000-250000",
+    "requires_native_token": false,
+    "complexity": "medium",
+    "tags": [
+      "defi",
+      "dex",
+      "liquidity",
+      "raydium",
+      "amm",
+      "lp-token",
+      "remove"
+    ],
+    "learning_objectives": [
+      "Understanding liquidity removal from AMM DEXes",
+      "Managing LP token approvals",
+      "Calculating liquidity removal amounts and slippage",
+      "Handling SOL redemption from WSOL pairs",
+      "Multi-step DeFi operations"
+    ],
+    "common_pitfalls": [
+      "Not approving LP tokens before removing liquidity",
+      "Sending SOL value with transaction (this is NOT payable)",
+      "Using wrong token address (should use Token, not WSOL)",
+      "Setting amountTokenMin/amountETHMin too high",
+      "Not querying reserves to estimate output amounts",
+      "Forgetting to set deadline parameter"
+    ],
+    "requires_contract": false
+  },
+  "version": "2.0.0"
+}

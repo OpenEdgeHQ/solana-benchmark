@@ -1,0 +1,90 @@
+{
+  "id": "composite_approve_swap_to_sol",
+  "category": "composite_problems",
+  "difficulty": "medium",
+  "title": "Approve and Swap Tokens for SOL",
+  "description": [
+    "A composite problem that tests the LLM's ability to:",
+    "1. Execute approval for JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+    "2. Execute swap operation to exchange tokens for SOL"
+  ],
+  "natural_language_templates": [
+    "Approve {spender_address} to spend {amount_in} USDT, then swap {amount_in} USDT for SOL",
+    "First approve {spender_address} to spend {amount_in} USDT, then swap {amount_in} USDT to SOL on Jupiter"
+  ],
+  "blockchain": {
+    "chain": "Solana",
+    "network": "mainnet"
+  },
+  "composite_structure": {
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "spl_approve",
+        "description": "Approve spender to spend tokens",
+        "parameter_mapping": {
+          "spender_address": "spender_address",
+          "token_address": "token_in_address",
+          "amount": "amount_in"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "swap_exact_tokens_for_sol",
+        "role": "key_operation",
+        "description": "Swap input tokens for output tokens",
+        "parameter_mapping": {
+          "token_address": "token_in_address"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "token_in_address": {
+      "type": "address",
+      "role": "token_in",
+      "description": "Input token address",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "comment": "USDT on Solana"
+      }
+    },
+    "spender_address": {
+      "type": "address",
+      "generation": {
+        "method": "fixed",
+        "value": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+      }
+    },
+    "amount_in": {
+      "type": "number",
+      "unit": "token",
+      "role": "swap_amount",
+      "description": "Amount of input tokens to swap",
+      "generation": {
+        "method": "random",
+        "min": 20.0,
+        "max": 50.0,
+        "decimals": 2
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "interaction_config": {
+    "optimal_steps": 2,
+    "max_rounds_multiplier": 2,
+    "comment": "max_rounds = optimal_steps * max_rounds_multiplier = 2 * 2 = 4"
+  },
+  "tags": ["approve-execute", "defi", "swap"]
+}
+

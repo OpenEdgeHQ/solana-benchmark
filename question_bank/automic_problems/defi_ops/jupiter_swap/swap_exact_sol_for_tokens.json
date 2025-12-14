@@ -6,32 +6,12 @@
   "difficulty": "easy",
   "title": "Jupiter Swap - SOL to Token",
   "natural_language_templates": [
-    "Swap {amount} SOL for {token_address} tokens on Jupiter",
-    "Exchange {amount} SOL to {token_address} using Jupiter Router",
-    "Convert {amount} SOL to {token_address} tokens through Jupiter V2",
-    "Trade {amount} SOL for {token_address} on Jupiter with {slippage}% slippage tolerance"
+    "Swap {amount} SOL for USDT tokens on Jupiter",
+    "Exchange {amount} SOL to USDT using Jupiter Router",
+    "Convert {amount} SOL to USDT tokens through Jupiter V6",
+    "Trade {amount} SOL for USDT on Jupiter with {slippage}% slippage tolerance"
   ],
   "description": [
-    "Swap SOL for ERC20 tokens using Jupiter V2 Router's swapExactETHForTokens function.",
-    "",
-    "Key considerations:",
-    "- amountOutMin: Minimum amount of tokens to receive (slippage protection)",
-    "- path: Array of token addresses for the swap route [WSOL, TOKEN]",
-    "- to: Recipient address (usually the sender/agent address)",
-    "- deadline: Unix timestamp after which the transaction will revert",
-    "- Must set transaction 'value' field to the SOL amount being swapped",
-    "- WSOL address on Solana: 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-    "",
-    "Slippage protection:",
-    "- Calculate amountOutMin using getAmountsOut or apply a percentage (2-5% typical)",
-    "- Formula: amountOutMin = expectedOutput * (1 - slippagePercent)",
-    "- For testing, can use 0 for amountOutMin (accepts any output)",
-    "",
-    "Success criteria:",
-    "- Transaction executes successfully",
-    "- Correct Jupiter Router is called",
-    "- SOL balance decreases by amountIn (plus gas)",
-    "- Token balance increases by at least amountOutMin"
   ],
   "blockchain": {
     "chain": "Solana",
@@ -44,7 +24,7 @@
       "description": "Target token to receive (USDT by default)",
       "generation": {
         "method": "fixed",
-        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
         "comment": "USDT on Solana"
       }
     },

@@ -1,0 +1,151 @@
+{
+  "id": "composite_multi_token_swap",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "balance",
+  "difficulty": "medium",
+  "title": "Multi-Step Token Swap (SOL → USDT → USDC)",
+  "natural_language_templates": [
+    "Swap {amount_sol} SOL for USDT, then swap {amount_usdt} USDT for USDC on PancakeSwap",
+    "Exchange {amount_sol} SOL to USDT, then convert {amount_usdt} USDT to USDC",
+    "Convert {amount_sol} SOL to USDT first, then swap {amount_usdt} USDT for USDC"
+  ],
+  "description": [
+    "Execute a multi-step token swap through PancakeSwap.",
+    "This is a 2-step process:",
+    "1. Swap SOL for USDT using Jupiter",
+    "2. Swap all received USDT for USDC"
+  ],
+  "composite_structure": {
+    "pattern": "multi-swap",
+    "optimal_steps": 3,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "swap_exact_sol_for_tokens",
+        "description": "Swap SOL for USDT",
+        "parameter_mapping": {
+          "token_address": "usdt_address",
+          "amount": "amount_sol"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "swap_exact_tokens_for_tokens",
+        "role": "key_operation",
+        "parameter_mapping": {
+          "amount": "amount_usdt",
+          "token_address": "usdt_address",
+          "token_out_address": "usdc_address"
+        }
+      }
+    ]
+  },
+  "parameters": {
+    "amount_sol": {
+      "type": "number",
+      "unit": "SOL",
+      "role": "input_amount",
+      "description": "Amount of SOL to swap",
+      "generation": {
+        "method": "random",
+        "min": 0.3,
+        "max": 0.6,
+        "decimals": 3
+      }
+    },
+    "amount_usdt": {
+      "type": "number",
+      "generation": {
+        "method": "random",
+        "min": 10,
+        "max": 20,
+        "decimals": 3
+      }
+    },
+    "spender_address": {
+      "type": "address",
+      "role": "contract",
+      "generation": {
+        "method": "fixed",
+        "value": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+      }
+    },
+    "wsol_address": {
+      "type": "address",
+      "role": "token",
+      "description": "WSOL contract address",
+      "generation": {
+        "method": "fixed",
+        "value": "So11111111111111111111111111111111111111112"
+      }
+    },
+    "usdt_address": {
+      "type": "address",
+      "role": "intermediate_token",
+      "description": "USDT contract address",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+      }
+    },
+    "usdc_address": {
+      "type": "address",
+      "role": "output_token",
+      "description": "USDC contract address",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      }
+    },
+    "slippage": {
+      "type": "number",
+      "unit": "percent",
+      "role": "slippage_tolerance",
+      "description": "Slippage tolerance",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      }
+    }
+  },
+  "interaction_config": {
+    "max_rounds": 6,
+    "optimal_steps": 3,
+    "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+    "forced_submit_at_max": true
+  },
+  "scoring_strategy": {
+    "method": "atomic_validator_reuse",
+    "key_operation_id": "swap_exact_tokens_for_tokens",
+    "key_operation_step": 3
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "sol_balance",
+        "description": "Agent must have sufficient SOL",
+        "min_balance": "1.0 SOL"
+      }
+    ],
+    "post_conditions": []
+  },
+  "metadata": {
+    "tags": [
+      "defi",
+      "multi-swap",
+      "routing",
+      "pancakeswap",
+      "medium"
+    ],
+    "estimated_gas": 400000,
+    "requires_approval": true,
+    "difficulty_notes": [
+      "Multi-step swap operation",
+      "Requires intermediate approval",
+      "Must handle slippage for both swaps",
+      "Token routing knowledge required"
+    ]
+  }
+}
+

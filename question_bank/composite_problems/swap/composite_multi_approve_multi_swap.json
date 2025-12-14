@@ -1,0 +1,123 @@
+{
+  "id": "composite_multi_approve_multi_swap",
+  "version": "1.0.0",
+  "category": "composite_problems",
+  "subcategory": "complex_defi",
+  "difficulty": "hard",
+  "title": "Multi-Approve Multi-Swap: USDT → TRUMP → USDC",
+  "natural_language_templates": [
+    "Swap {amount} USDT for TRUMP, then swap all TRUMP for USDC on Jupiter, and query the final USDC balance",
+    "First swap {amount} USDT to TRUMP, then swap all TRUMP to USDC, then query USDC balance"
+  ],
+  "description": [
+    "Complex multi-swap workflow with multiple approvals.",
+    "This is a 3-step process:",
+    "1. Swap USDT for TRUMP",
+    "2. Swap all received TRUMP for USDC",
+    "3. Query final USDC balance to verify"
+  ],
+  "composite_structure": {
+    "pattern": "multi-approve-multi-swap",
+    "optimal_steps": 5,
+    "atomic_operations": [
+      {
+        "step": 1,
+        "atomic_id": "swap_exact_tokens_for_tokens",
+        "parameter_mapping": {
+          "amount": "amount",
+          "token_address": "usdt_address",
+          "token_out_address": "trump_address"
+        }
+      },
+      {
+        "step": 2,
+        "atomic_id": "swap_percentage_tokens_for_tokens",
+        "parameter_mapping": {
+          "percentage": "1",
+          "token_address": "trump_address",
+          "token_out_address": "usdc_address"
+        }
+      },
+      {
+        "step": 3,
+        "atomic_id": "query_spl_token_balance",
+        "description": "Query final USDC balance",
+        "parameter_mapping": {
+          "token_address": "usdc_address"
+        }
+      }
+    ],
+    "interaction_config": {
+      "max_rounds": 10,
+      "optimal_steps": 5,
+      "score_decay_formula": "base_score * min(1.0, optimal_steps / actual_steps)",
+      "forced_submit_at_max": true
+    }
+  },
+  "parameters": {
+    "usdt_address": {
+      "type": "address",
+      "role": "token",
+      "description": "USDT token address",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+      }
+    },
+    "trump_address": {
+      "type": "address",
+      "role": "token",
+      "description": "TRUMP token address",
+      "generation": {
+        "method": "fixed",
+        "value": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+      }
+    },
+    "usdc_address": {
+      "type": "address",
+      "role": "token",
+      "description": "USDC token address",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      }
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount of USDT to swap",
+      "generation": {
+        "method": "fixed",
+        "value": 50
+      }
+    }
+  },
+  "validation": {
+    "pre_conditions": [
+      {
+        "type": "token_balance",
+        "description": "Agent must have sufficient USDT",
+        "min_balance": "100 USDT"
+      }
+    ],
+    "post_conditions": [
+    ]
+  },
+  "metadata": {
+    "tags": [
+      "defi",
+      "multi-swap",
+      "multi-approve",
+      "complex",
+      "hard"
+    ],
+    "estimated_gas": 800000,
+    "requires_approval": true,
+    "difficulty_notes": [
+      "Five-step multi-swap workflow",
+      "Requires two separate approvals",
+      "Must handle dynamic amounts between swaps",
+      "Final verification step"
+    ]
+  }
+}
+

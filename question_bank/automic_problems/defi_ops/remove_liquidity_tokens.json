@@ -1,0 +1,115 @@
+{
+  "id": "remove_liquidity_tokens",
+  "category": "defi_operations",
+  "subcategory": "raydium_liquidity",
+  "difficulty": "medium",
+  "title": "Remove Liquidity from Token-Token Pool",
+  "natural_language_templates": [
+    "Remove liquidity from the USDT/USDC pool on Raydium",
+    "Withdraw my liquidity from the USDT-USDC pool on Raydium"
+  ],
+  "description": [
+  ],
+  "blockchain": {
+    "network": "Solana"
+  },
+  "parameters": {
+    "spender_address": {
+      "type": "address",
+      "description": "Token address to pair with SOL",
+      "generation": {
+        "method": "fixed",
+        "value": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK"
+      }
+    },
+    "token_a_address": {
+      "type": "address",
+      "description": "First token address",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+      },
+      "role": "receiver"
+    },
+    "token_b_address": {
+      "type": "address",
+      "description": "Second token address",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      },
+      "role": "receiver"
+    },
+    "slippage": {
+      "type": "number",
+      "description": "Slippage tolerance in percentage",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      },
+      "role": "parameter"
+    }
+  },
+  "preconditions": [
+    {
+      "type": "balance",
+      "description": "Must have BNB for gas fees",
+      "check": "balance >= 0.01 BNB"
+    },
+    {
+      "type": "lp_balance",
+      "description": "Must own LP tokens for the pair",
+      "check": "LP token balance > 0"
+    }
+  ],
+  "validation": {
+    "pre_conditions": [],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "0",
+        "mint": "{token_a_address}",
+        "tolerance": 100,
+        "compute": 1,
+        "description": "SOL balance decreased correctly"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "0",
+        "mint": "{token_b_address}",
+        "tolerance": 100,
+        "compute": 1,
+        "description": "Token balance increased (received output tokens)"
+      }
+    ]
+  },
+  "metadata": {
+    "estimated_gas": 200000,
+    "requires_approval": true,
+    "approval_target": "LP Token",
+    "approval_spender": "PancakeSwap Router V2",
+    "tags": [
+      "defi",
+      "raydium",
+      "liquidity",
+      "remove",
+      "amm",
+      "dex"
+    ],
+    "learning_objectives": [
+      "Understanding liquidity removal from AMM pools",
+      "LP token mechanics and redemption",
+      "Slippage protection for liquidity removal",
+      "Multi-step DeFi operations (query, approve, remove)"
+    ],
+    "requires_contract": false
+  },
+  "version": "2.0.0"
+}

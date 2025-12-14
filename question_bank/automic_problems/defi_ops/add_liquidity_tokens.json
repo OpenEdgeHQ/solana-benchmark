@@ -1,0 +1,131 @@
+{
+  "id": "add_liquidity_tokens",
+  "category": "defi_operations",
+  "subcategory": "raydium_liquidity",
+  "difficulty": "medium",
+  "title": "Raydium Add Liquidity - Token + Token",
+  "natural_language_templates": [
+    "Add {amount_token_a} USDT and {amount_token_b} USDC as liquidity to Raydium",
+    "Provide liquidity to Raydium: {amount_token_a} USDT + {amount_token_b} USDC",
+    "Deposit {amount_token_a} USDT and {amount_token_b} USDC into Raydium liquidity pool"
+  ],
+  "description": [],
+  "blockchain": {
+    "network": "Solana",
+    "contract_address": "{{router_address}}"
+  },
+  "parameters": {
+    "spender_address": {
+      "type": "address",
+      "description": "Token address to pair with SOL",
+      "generation": {
+        "method": "fixed",
+        "value": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK"
+      }
+    },
+    "token_a_address": {
+      "type": "address",
+      "description": "First token address",
+      "generation": {
+        "method": "fixed",
+        "value": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+      },
+      "role": "receiver"
+    },
+    "token_b_address": {
+      "type": "address",
+      "description": "Second token address",
+      "generation": {
+        "method": "fixed",
+        "value": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      },
+      "role": "receiver"
+    },
+    "amount_token_a": {
+      "type": "number",
+      "description": "Desired amount of first token to add as liquidity",
+      "generation": {
+        "method": "fixed",
+        "value": 30.0
+      },
+      "role": "transfer_amount"
+    },
+    "amount_token_b": {
+      "type": "number",
+      "description": "Desired amount of second token to add as liquidity",
+      "generation": {
+        "method": "fixed",
+        "value": 30.0
+      },
+      "role": "transfer_amount"
+    },
+    "slippage": {
+      "type": "number",
+      "description": "Maximum acceptable slippage percentage (e.g., 5.0 for 5%)",
+      "generation": {
+        "method": "fixed",
+        "value": 5.0
+      },
+      "role": "parameter"
+    }
+  },
+  "preconditions": {
+  },
+  "validation": {
+    "pre_conditions": [],
+    "post_conditions": [
+      {
+        "type": "transaction_success",
+        "weight": 30,
+        "description": "Transaction executed successfully"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount_token_a}",
+        "mint": "{token_a_address}",
+        "tolerance": 0,
+        "description": "SOL balance decreased correctly"
+      },
+      {
+        "type": "balance_change",
+        "weight": 35,
+        "expected": "{amount_token_b}",
+        "mint": "{token_b_address}",
+        "tolerance": 100,
+        "description": "Token balance increased (received output tokens)"
+      }
+    ]
+  },
+  "metadata": {
+    "estimated_gas": "200000-300000",
+    "requires_native_token": false,
+    "complexity": "medium",
+    "tags": [
+      "defi",
+      "dex",
+      "liquidity",
+      "raydium",
+      "amm",
+      "lp-token",
+      "token-pair"
+    ],
+    "learning_objectives": [
+      "Understanding liquidity provision for token pairs in AMM DEXes",
+      "Managing multiple token approvals for router contracts",
+      "Calculating optimal amounts based on pool ratios",
+      "Handling slippage tolerance for two-sided liquidity",
+      "Receiving and tracking LP tokens for token pairs"
+    ],
+    "common_pitfalls": [
+      "Not approving both tokens before adding liquidity",
+      "Using the wrong token order (tokenA vs tokenB)",
+      "Setting amountMin values too high based on wrong token",
+      "Sending BNB value (this is not a payable function)",
+      "Not querying reserves to calculate optimal ratios",
+      "Forgetting to set deadline parameter"
+    ],
+    "requires_contract": false
+  },
+  "version": "2.0.0"
+}
