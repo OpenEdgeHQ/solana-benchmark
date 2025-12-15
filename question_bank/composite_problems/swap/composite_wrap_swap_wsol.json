@@ -78,7 +78,6 @@
     },
     "slippage": {
       "type": "number",
-      "unit": "percent",
       "role": "slippage_tolerance",
       "description": "Slippage tolerance percentage",
       "generation": {
@@ -106,7 +105,6 @@
     "tags": [
       "wrap-swap",
       "defi",
-      "pancakeswap",
       "swap",
       "three-step"
     ],

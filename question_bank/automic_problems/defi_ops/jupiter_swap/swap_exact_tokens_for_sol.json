@@ -30,7 +30,6 @@
     },
     "amount": {
       "type": "number",
-      "unit": "token",
       "role": "swap_amount",
       "description": "Amount of tokens to swap",
       "generation": {
@@ -42,7 +41,6 @@
     },
     "slippage": {
       "type": "number",
-      "unit": "percent",
       "role": "slippage_tolerance",
       "description": "Slippage tolerance percentage",
       "generation": {

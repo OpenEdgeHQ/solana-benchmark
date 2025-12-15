@@ -39,7 +39,6 @@
     },
     "amount": {
       "type": "number",
-      "unit": "SOL",
       "description": "Transfer amount in SOL",
       "generation": {
         "min": 0.001,

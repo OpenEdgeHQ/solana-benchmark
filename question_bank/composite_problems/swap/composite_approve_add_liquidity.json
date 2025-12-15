@@ -64,7 +64,6 @@
     },
     "amount_token": {
       "type": "number",
-      "unit": "tokens",
       "description": "Amount of token A to add as liquidity",
       "shared_across_steps": [1, 2],
       "generation": {
@@ -74,7 +73,6 @@
     },
     "amount_sol": {
       "type": "number",
-      "unit": "tokens",
       "role": "liquidity_amount",
       "description": "Amount of SOL to add as liquidity",
       "shared_across_steps": [2],
@@ -85,7 +83,6 @@
     },
     "slippage": {
       "type": "number",
-      "unit": "percent",
       "role": "slippage_tolerance",
       "description": "Slippage tolerance (e.g., 5 for 5%)",
       "shared_across_steps": [2],

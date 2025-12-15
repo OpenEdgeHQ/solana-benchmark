@@ -56,8 +56,7 @@
         "method": "from_list",
         "addresses": [
           "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"
-        ],
-        "comment": "Solana Mainnet PancakeSwap Router V2"
+        ]
       }
     },
     "amount": {

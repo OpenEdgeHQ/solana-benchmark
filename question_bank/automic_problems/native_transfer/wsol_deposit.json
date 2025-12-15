@@ -40,7 +40,6 @@
   "parameters": {
     "amount": {
       "type": "number",
-      "unit": "SOL",
       "description": "Amount of SOL to deposit",
       "generation": {
         "min": 0.001,

@@ -104,7 +104,6 @@
     },
     "amount_usdt": {
       "type": "number",
-      "unit": "USDT",
       "role": "swap_amount",
       "description": "Amount of USDT to swap to USDC",
       "generation": {
@@ -116,7 +115,6 @@
     },
     "amount_trump": {
       "type": "number",
-      "unit": "TRUMP",
       "role": "swap_amount",
       "description": "Amount of TRUMP to swap to USDC",
       "generation": {
@@ -128,7 +126,7 @@
     },
     "slippage": {
       "type": "number",
-      "unit": "percent",
+      "unit": "%",
       "role": "slippage_tolerance",
       "description": "Slippage tolerance percentage",
       "generation": {

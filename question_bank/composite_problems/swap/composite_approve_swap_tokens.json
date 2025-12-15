@@ -72,7 +72,6 @@
     },
     "amount_in": {
       "type": "number",
-      "unit": "tokens",
       "role": "swap_amount",
       "description": "Amount of input tokens to swap",
       "shared_across_steps": [1, 2],
@@ -85,7 +84,7 @@
     },
     "slippage": {
       "type": "number",
-      "unit": "percent",
+      "unit": "%",
       "role": "slippage_tolerance",
       "description": "Slippage tolerance for the swap (e.g., 5 for 5%)",
       "shared_across_steps": [2],

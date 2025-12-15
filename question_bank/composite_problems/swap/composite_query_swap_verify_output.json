@@ -57,7 +57,6 @@
     },
     "amount_sol": {
       "type": "number",
-      "unit": "SOL",
       "role": "swap_amount",
       "description": "Amount of SOL to swap",
       "generation": {
@@ -69,7 +68,7 @@
     },
     "slippage": {
       "type": "number",
-      "unit": "percent",
+      "unit": "%",
       "role": "slippage_tolerance",
       "description": "Slippage tolerance percentage",
       "generation": {

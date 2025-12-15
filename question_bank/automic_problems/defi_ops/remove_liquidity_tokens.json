@@ -94,7 +94,6 @@
     "estimated_gas": 200000,
     "requires_approval": true,
     "approval_target": "LP Token",
-    "approval_spender": "PancakeSwap Router V2",
     "tags": [
       "defi",
       "raydium",

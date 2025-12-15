@@ -61,7 +61,6 @@
   "parameters": {
     "amount": {
       "type": "number",
-      "unit": "SOL",
       "role": "input",
       "description": "Amount of SOL to start with",
       "generation": {
@@ -89,7 +88,7 @@
     },
     "slippage": {
       "type": "number",
-      "unit": "percent",
+      "unit": "%",
       "role": "slippage_tolerance",
       "description": "Slippage tolerance percentage",
       "generation": {

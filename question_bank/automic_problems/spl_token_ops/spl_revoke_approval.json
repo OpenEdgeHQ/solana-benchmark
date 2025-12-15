@@ -56,8 +56,7 @@
         "method": "from_list",
         "addresses": [
           "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"
-        ],
-        "comment": "PancakeSwap Router, Venus Protocol, PancakeSwap V3 Router"
+        ]
       }
     }
   },

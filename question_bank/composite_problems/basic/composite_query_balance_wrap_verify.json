@@ -57,7 +57,6 @@
     },
     "amount": {
       "type": "number",
-      "unit": "SOL",
       "role": "wrap_amount",
       "description": "Amount of SOL to wrap",
       "shared_across_steps": [2],

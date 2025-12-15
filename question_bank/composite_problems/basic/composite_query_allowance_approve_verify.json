@@ -41,7 +41,6 @@
       "type": "number",
       "role": "amount",
       "description": "Amount of tokens to approve",
-      "unit": "tokens",
       "generation": {
         "method": "random",
         "min": 0.1,

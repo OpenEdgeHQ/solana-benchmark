@@ -6,12 +6,12 @@
   "difficulty": "medium",
   "title": "Multi-Step Token Swap (SOL → USDT → USDC)",
   "natural_language_templates": [
-    "Swap {amount_sol} SOL for USDT, then swap {amount_usdt} USDT for USDC on PancakeSwap",
+    "Swap {amount_sol} SOL for USDT, then swap {amount_usdt} USDT for USDC on Jupiter",
     "Exchange {amount_sol} SOL to USDT, then convert {amount_usdt} USDT to USDC",
     "Convert {amount_sol} SOL to USDT first, then swap {amount_usdt} USDT for USDC"
   ],
   "description": [
-    "Execute a multi-step token swap through PancakeSwap.",
+    "Execute a multi-step token swap through Jupiter.",
     "This is a 2-step process:",
     "1. Swap SOL for USDT using Jupiter",
     "2. Swap all received USDT for USDC"
@@ -44,7 +44,6 @@
   "parameters": {
     "amount_sol": {
       "type": "number",
-      "unit": "SOL",
       "role": "input_amount",
       "description": "Amount of SOL to swap",
       "generation": {
@@ -100,7 +99,6 @@
     },
     "slippage": {
       "type": "number",
-      "unit": "percent",
       "role": "slippage_tolerance",
       "description": "Slippage tolerance",
       "generation": {
@@ -135,7 +133,6 @@
       "defi",
       "multi-swap",
       "routing",
-      "pancakeswap",
       "medium"
     ],
     "estimated_gas": 400000,
