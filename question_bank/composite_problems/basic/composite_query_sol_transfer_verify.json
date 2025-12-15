@@ -15,7 +15,10 @@
     "to_address": {
       "type": "address",
       "generation_method": "random",
-      "description": "Recipient address for SOL transfer"
+      "description": "Recipient address for SOL transfer",
+      "generation": {
+        "method": "random"
+      }
     },
     "amount": {
       "type": "number",
